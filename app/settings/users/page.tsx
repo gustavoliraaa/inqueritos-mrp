@@ -114,37 +114,6 @@ export default function UserManagementPage() {
       return;
     }
 
-    async function inviteUser(event: FormEvent<HTMLFormElement>) {
-      event.preventDefault();
-      setInviteSaving(true);
-      setFeedback("");
-      const response = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(inviteForm) });
-      const result = await response.json() as { error?: string };
-      if (!response.ok) {
-        setFeedback(result.error || "Não foi possível convidar o usuário.");
-      } else {
-        setShowInvite(false);
-        setInviteForm({ email: "", password: "", full_name: "", unit: "", role: "agente" });
-        setFeedback("Usuário criado e bloqueado até a liberação de um administrador. Atualize a lista para visualizá-lo.");
-      }
-      setInviteSaving(false);
-    }
-
-    async function toggleAccess(user: ManagedUser) {
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) {
-        setFeedback("Supabase não está configurado neste ambiente.");
-        return;
-      }
-      const { error } = await supabase.from("profiles").update({ access_enabled: !user.access_enabled, updated_at: new Date().toISOString() }).eq("id", user.id);
-      if (error) {
-        setFeedback("Não foi possível alterar a liberação do usuário.");
-      } else {
-        setUsers((current) => current.map((item) => item.id === user.id ? { ...item, access_enabled: !user.access_enabled } : item));
-        setFeedback(user.access_enabled ? "Acesso bloqueado." : "Acesso liberado.");
-      }
-    }
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       router.replace("/auth/login");
@@ -171,6 +140,44 @@ export default function UserManagementPage() {
       }
     }
     setSaving(false);
+  }
+
+  async function inviteUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setInviteSaving(true);
+    setFeedback("");
+    const response = await fetch("/api/admin/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(inviteForm)
+    });
+    const result = await response.json() as { error?: string };
+    if (!response.ok) {
+      setFeedback(result.error || "Não foi possível convidar o usuário.");
+    } else {
+      setShowInvite(false);
+      setInviteForm({ email: "", password: "", full_name: "", unit: "", role: "agente" });
+      setFeedback("Usuário criado e bloqueado até a liberação de um administrador. Atualize a lista para visualizá-lo.");
+    }
+    setInviteSaving(false);
+  }
+
+  async function toggleAccess(user: ManagedUser) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setFeedback("Supabase não está configurado neste ambiente.");
+      return;
+    }
+    const { error } = await supabase.from("profiles").update({
+      access_enabled: !user.access_enabled,
+      updated_at: new Date().toISOString()
+    }).eq("id", user.id);
+    if (error) {
+      setFeedback("Não foi possível alterar a liberação do usuário.");
+    } else {
+      setUsers((current) => current.map((item) => item.id === user.id ? { ...item, access_enabled: !user.access_enabled } : item));
+      setFeedback(user.access_enabled ? "Acesso bloqueado." : "Acesso liberado.");
+    }
   }
 
   async function savePermissions() {
