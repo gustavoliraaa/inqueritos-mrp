@@ -38,6 +38,9 @@ type Investigation = {
   updated: string;
 };
 
+type SearchResult = { id: string; label: string; subtitle: string; route: string };
+type Notification = { id: string; action: string; entity_type: string; created_at: string };
+
 const investigations: Investigation[] = [];
 
 const navItems = [
@@ -66,8 +69,12 @@ export default function HomePage() {
   const [active, setActive] = useState("Central");
   const [showModal, setShowModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [query, setQuery] = useState("");
-  const [profile, setProfile] = useState({ name: "Usuário", role: "Agente", email: "" });
+  const [profile, setProfile] = useState({ name: "Usuário", role: "Agente", email: "", unit: "Unidade não definida" });
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const filtered = investigations.filter((item) =>
     `${item.id} ${item.title} ${item.unit}`.toLowerCase().includes(query.toLowerCase())
   );
@@ -83,19 +90,64 @@ export default function HomePage() {
 
       const { data: profileData } = await client
         .from("profiles")
-        .select("full_name, role")
+        .select("full_name, role, unit")
         .eq("id", user.id)
         .maybeSingle();
 
       setProfile({
         name: profileData?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuário",
         role: profileData?.role ? profileData.role.replaceAll("_", " ") : "Agente",
-        email: user.email || ""
+        email: user.email || "",
+        unit: profileData?.unit || "Unidade não definida"
       });
+
+      const { data: auditData } = await client.from("audit_logs").select("id, action, entity_type, created_at").eq("actor_id", user.id).order("created_at", { ascending: false }).limit(5);
+      setNotifications(auditData || []);
     }
 
     void loadProfile();
   }, []);
+
+  useEffect(() => {
+    const normalizedQuery = query.trim();
+    if (normalizedQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = window.setTimeout(async () => {
+      const client = getSupabaseBrowserClient();
+      if (!client) return;
+      const pattern = `%${normalizedQuery}%`;
+      const [investigationsRes, peopleRes, entitiesRes] = await Promise.all([
+        client.from("investigations").select("id, identifier, title").or(`identifier.ilike.${pattern},title.ilike.${pattern}`).limit(5),
+        client.from("people").select("id, identifier, name").or(`identifier.ilike.${pattern},name.ilike.${pattern}`).limit(5),
+        client.from("entities").select("id, identifier, name, entity_type").or(`identifier.ilike.${pattern},name.ilike.${pattern}`).limit(5)
+      ]);
+      setSearchResults([
+        ...(investigationsRes.data || []).map((item) => ({ id: item.id, label: item.identifier, subtitle: item.title, route: `/investigations/${item.id}` })),
+        ...(peopleRes.data || []).map((item) => ({ id: item.id, label: item.identifier, subtitle: item.name, route: `/people/${item.id}` })),
+        ...(entitiesRes.data || []).map((item) => ({ id: item.id, label: item.identifier, subtitle: `${item.name} · ${item.entity_type}`, route: `/intelligence?query=${encodeURIComponent(item.identifier)}` }))
+      ]);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        document.querySelector<HTMLInputElement>(".search-global input")?.focus();
+      }
+    }
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, []);
+
+  function selectSearchResult(result: SearchResult) {
+    setQuery("");
+    setSearchResults([]);
+    router.push(result.route);
+  }
 
   async function handleLogout() {
     const supabase = getSupabaseBrowserClient();
@@ -110,17 +162,18 @@ export default function HomePage() {
           <div className="brand-mark"><Shield size={21} /></div>
           <div><strong>MRP</strong><span>INTELLIGENCE</span></div>
         </div>
-        <div className="workspace-switcher">
-          <div className="avatar avatar-small">DA</div>
-          <div><strong>Unidade operacional</strong><span>{profile.name}</span></div>
+        <button className="workspace-switcher" onClick={() => setShowWorkspaceMenu((visible) => !visible)} aria-expanded={showWorkspaceMenu}>
+          <div className="avatar avatar-small">{getInitials(profile.name)}</div>
+          <div><strong>{profile.unit}</strong><span>{profile.name}</span></div>
           <ChevronDown size={15} />
-        </div>
+        </button>
+        {showWorkspaceMenu && <div className="workspace-menu"><strong>Unidade atual</strong><span>{profile.unit}</span><button onClick={() => router.push("/profile")}>Editar meu perfil</button><button onClick={() => router.push("/settings")}>Configurações</button></div>}
         <p className="nav-label">NAVEGAÇÃO</p>
         <nav>
           {navItems.map(({ label, icon: Icon }) => (
             <button className={`nav-item ${active === label ? "active" : ""}`} key={label} onClick={() => label === "Central" ? setActive(label) : label === "Inquéritos" ? router.push("/investigations") : label === "Pessoas" ? router.push("/people") : label === "Veículos" ? router.push("/vehicles") : label === "Organizações" ? router.push("/organizations") : label === "Locais" ? router.push("/locations") : label === "Telefones" ? router.push("/phones") : label === "Evidências" ? router.push("/evidences") : label === "Diligências" ? router.push("/tasks") : label === "Inteligência" ? router.push("/intelligence") : setActive(label)}>
               <Icon size={18} /><span>{label}</span>
-              {label === "Inquéritos" && <b>12</b>}
+              {label === "Inquéritos" && <b>0</b>}
             </button>
           ))}
         </nav>
@@ -134,7 +187,7 @@ export default function HomePage() {
             <div className="avatar">{getInitials(profile.name)}</div>
             <div><strong>{profile.name}</strong><span>{profile.role}</span></div>
           </button>
-          <button aria-label="Notificações"><Bell size={17} /></button>
+          <button aria-label="Notificações" onClick={() => setShowNotifications((visible) => !visible)}><Bell size={17} />{notifications.length > 0 && <i />}</button>
         </div>
       </aside>
 
@@ -142,8 +195,8 @@ export default function HomePage() {
         <header className="topbar">
           <div className="breadcrumbs"><span>Central</span><span>/</span><strong>{active}</strong></div>
           <div className="topbar-actions">
-            <label className="search search-global"><Search size={17} /><input placeholder="Pesquisar na central..." value={query} onChange={(event) => setQuery(event.target.value)} /><kbd>⌘ K</kbd></label>
-            <button className="icon-button" aria-label="Notificações"><Bell size={19} /><i /></button>
+            <div className="global-search-wrap"><label className="search search-global"><Search size={17} /><input placeholder="Pesquisar na central..." value={query} onChange={(event) => setQuery(event.target.value)} /><kbd>⌘ K</kbd></label>{searchResults.length > 0 && <div className="global-search-results">{searchResults.map((result) => <button key={`${result.route}-${result.id}`} onClick={() => selectSearchResult(result)}><strong>{result.label}</strong><span>{result.subtitle}</span></button>)}</div>}</div>
+            <div className="notification-wrap"><button className="icon-button" aria-label="Notificações" onClick={() => setShowNotifications((visible) => !visible)}><Bell size={19} />{notifications.length > 0 && <i />}</button>{showNotifications && <div className="notification-menu"><div className="panel-heading"><strong>Notificações</strong><small>{notifications.length} recentes</small></div>{notifications.length === 0 ? <p className="muted">Nenhuma notificação.</p> : notifications.map((item) => <div className="notification-item" key={item.id}><strong>{item.action}</strong><span>{item.entity_type} · {new Date(item.created_at).toLocaleString("pt-BR")}</span></div>)}</div>}</div>
             <div className="user-menu-wrap">
               <button className="avatar avatar-button" aria-label="Abrir menu do usuário" aria-expanded={showUserMenu} onClick={() => setShowUserMenu((visible) => !visible)}>{getInitials(profile.name)}</button>
               {showUserMenu && <div className="user-menu">
