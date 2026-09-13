@@ -67,6 +67,11 @@ Para habilitar anexos de evidências, execute
 SQL Editor. O bucket `evidence-files` é privado; a aplicação gera links
 temporários para usuários autenticados.
 
+Para habilitar as liberações de funcionalidades por cargo, execute
+[`supabase/role-permissions.sql`](./supabase/role-permissions.sql) uma vez no
+SQL Editor. A página `/settings/users`, disponível para administradores, permite
+configurar somente as ações de criar, editar e excluir para os cargos padrão.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
