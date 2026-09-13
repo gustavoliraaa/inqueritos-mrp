@@ -1,0 +1,159 @@
+"use client";
+
+import { ArrowLeft, BookOpen, LoaderCircle, Pencil, Search, Settings as SettingsIcon, Shield, UserRound, Users, X } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseBrowserClient } from "../../../lib/supabase";
+
+type ManagedUser = {
+  id: string;
+  full_name: string;
+  unit: string | null;
+  role: string;
+  updated_at: string;
+};
+
+const roleLabels: Record<string, string> = {
+  agente: "Agente",
+  investigador: "Investigador",
+  delegado: "Delegado",
+  corregedoria: "Corregedoria",
+  administrador: "Administrador"
+};
+
+function initials(name: string) {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "US";
+}
+
+export default function UserManagementPage() {
+  const router = useRouter();
+  const [profile, setProfile] = useState({ id: "", full_name: "", role: "agente" });
+  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [query, setQuery] = useState("");
+  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
+  const [form, setForm] = useState({ full_name: "", unit: "", role: "agente" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setFeedback("Supabase não está configurado neste ambiente.");
+      setLoading(false);
+      return;
+    }
+    const client = supabase;
+
+    async function loadUsers() {
+      const { data: { user }, error: userError } = await client.auth.getUser();
+      if (userError || !user) {
+        router.replace("/auth/login");
+        return;
+      }
+
+      const { data: currentProfile, error: profileError } = await client.from("profiles").select("id, full_name, role").eq("id", user.id).maybeSingle();
+      if (profileError || currentProfile?.role !== "administrador") {
+        setFeedback("Apenas administradores podem acessar a gestão de usuários.");
+        setLoading(false);
+        return;
+      }
+
+      setProfile({ id: user.id, full_name: currentProfile.full_name || user.email || "Usuário", role: currentProfile.role });
+      const { data: managedUsers, error: usersError } = await client.from("profiles").select("id, full_name, unit, role, updated_at").order("full_name", { ascending: true });
+      if (usersError) {
+        setFeedback("Não foi possível carregar os usuários do sistema.");
+      } else {
+        setUsers(managedUsers || []);
+      }
+      setLoading(false);
+    }
+
+    void loadUsers();
+  }, [router]);
+
+  function openEditor(user: ManagedUser) {
+    setEditingUser(user);
+    setForm({ full_name: user.full_name, unit: user.unit || "", role: user.role });
+    setFeedback("");
+  }
+
+  async function saveUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingUser) return;
+    setSaving(true);
+    setFeedback("");
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setFeedback("Supabase não está configurado neste ambiente.");
+      setSaving(false);
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/auth/login");
+      setSaving(false);
+      return;
+    }
+
+    const updatedAt = new Date().toISOString();
+    const { error } = await supabase.from("profiles").update({
+      full_name: form.full_name.trim(),
+      unit: form.unit.trim() || null,
+      role: form.role,
+      updated_at: updatedAt
+    }).eq("id", editingUser.id);
+
+    if (error) {
+      setFeedback("Não foi possível atualizar o usuário. Verifique suas permissões.");
+    } else {
+      setUsers((current) => current.map((item) => item.id === editingUser.id ? { ...item, full_name: form.full_name.trim(), unit: form.unit.trim() || null, role: form.role, updated_at: updatedAt } : item));
+      setEditingUser(null);
+      setFeedback("Usuário atualizado com sucesso.");
+      if (editingUser.id === user.id) {
+        setProfile((current) => ({ ...current, full_name: form.full_name.trim(), role: form.role }));
+      }
+    }
+    setSaving(false);
+  }
+
+  const filteredUsers = users.filter((user) => `${user.full_name} ${user.unit || ""} ${roleLabels[user.role] || user.role}`.toLowerCase().includes(query.toLowerCase()));
+
+  if (loading) {
+    return <main className="profile-loading"><LoaderCircle className="spin" size={22} /> Carregando gestão de usuários...</main>;
+  }
+
+  if (profile.role !== "administrador") {
+    return <main className="profile-loading"><div><p className="page-error">{feedback || "Acesso restrito a administradores."}</p><button className="secondary-button" onClick={() => router.push("/settings")}>Voltar para configurações</button></div></main>;
+  }
+
+  return (
+    <main className="shell">
+      <aside className="sidebar">
+        <div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
+        <div className="profile-sidebar-card"><div className="avatar">{initials(profile.full_name)}</div><div><strong>{profile.full_name}</strong><span>Administrador</span></div></div>
+        <p className="nav-label">SISTEMA</p>
+        <button className="nav-item" onClick={() => router.push("/audit")}><BookOpen size={18} /><span>Auditoria</span></button>
+        <button className="nav-item active"><SettingsIcon size={18} /><span>Configurações</span></button>
+        <button className="nav-item" onClick={() => router.push("/settings")}><ArrowLeft size={18} /><span>Voltar para configurações</span></button>
+      </aside>
+
+      <section className="content">
+        <header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><button className="breadcrumb-link" onClick={() => router.push("/settings")}>Configurações</button><span>/</span><strong>Gestão de usuários</strong></div></header>
+        <div className="page people-page">
+          <div className="page-heading"><div><p className="eyebrow">ADMINISTRAÇÃO DO SISTEMA</p><h1>Gestão de usuários</h1><p className="muted">Gerencie os perfis, unidades e níveis de acesso dos usuários cadastrados.</p></div><button className="secondary-button" onClick={() => router.push("/settings")}><ArrowLeft size={16} /> Configurações</button></div>
+          <section className="panel user-management-panel">
+            <div className="panel-heading"><div><h2>Usuários do sistema</h2><p>As contas e senhas continuam sendo administradas pelo Supabase Auth.</p></div><span className="role-pill"><Users size={13} /> Administrador</span></div>
+            <div className="user-management-toolbar"><label className="search"><Search size={16} /><input placeholder="Buscar por nome, unidade ou cargo..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filteredUsers.length} usuário(s)</span></div>
+            {feedback && <p className="profile-feedback success">{feedback}</p>}
+            {filteredUsers.length === 0 ? <div className="empty-state"><Users size={25} /><strong>Nenhum usuário encontrado</strong></div> : <div className="table-wrap"><table><thead><tr><th>USUÁRIO</th><th>UNIDADE</th><th>CARGO</th><th>ATUALIZADO</th><th /></tr></thead><tbody>{filteredUsers.map((user) => <tr key={user.id}><td><strong>{user.full_name || "Sem nome"}</strong>{user.id === profile.id && <small>Usuário atual</small>}</td><td>{user.unit || "Não definida"}</td><td><span className="role-pill">{roleLabels[user.role] || user.role}</span></td><td className="muted">{new Date(user.updated_at).toLocaleDateString("pt-BR")}</td><td><button className="more-button" type="button" aria-label={`Editar ${user.full_name}`} onClick={() => openEditor(user)}><Pencil size={15} /></button></td></tr>)}</tbody></table></div>}
+            <p className="settings-admin-help">A criação, remoção e redefinição de senha das contas continuam sendo administradas pelo Supabase Auth.</p>
+          </section>
+        </div>
+      </section>
+
+      {editingUser && <div className="modal-backdrop" onClick={() => setEditingUser(null)}><form className="modal" onSubmit={saveUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setEditingUser(null)}><X size={18} /></button><p className="eyebrow">GESTÃO DE USUÁRIOS</p><h2>Editar usuário</h2><label>Nome completo<input required minLength={2} value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label><label>Unidade operacional<input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label><label>Cargo<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label>{feedback && <p className="form-error">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setEditingUser(null)}>Cancelar</button><button className="primary-button" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</button></div></form></div>}
+    </main>
+  );
+}
