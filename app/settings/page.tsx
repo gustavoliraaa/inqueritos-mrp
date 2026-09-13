@@ -10,20 +10,40 @@ import {
   Info,
   LoaderCircle,
   LogOut,
+  Pencil,
   Save,
   Settings as SettingsIcon,
   Shield,
-  UserRound
+  UserRound,
+  Users,
+  X
 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
 
 type SettingsProfile = {
+  id: string;
   full_name: string;
   unit: string;
   role: string;
   email: string;
+};
+
+type ManagedUser = {
+  id: string;
+  full_name: string;
+  unit: string | null;
+  role: string;
+  updated_at: string;
+};
+
+const roleLabels: Record<string, string> = {
+  agente: "Agente",
+  investigador: "Investigador",
+  delegado: "Delegado",
+  corregedoria: "Corregedoria",
+  administrador: "Administrador"
 };
 
 function initials(name: string) {
@@ -32,11 +52,17 @@ function initials(name: string) {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<SettingsProfile>({ full_name: "", unit: "", role: "agente", email: "" });
+  const [profile, setProfile] = useState<SettingsProfile>({ id: "", full_name: "", unit: "", role: "agente", email: "" });
   const [notifications, setNotifications] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [userQuery, setUserQuery] = useState("");
+  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
+  const [userForm, setUserForm] = useState({ full_name: "", unit: "", role: "agente" });
+  const [userSaving, setUserSaving] = useState(false);
+  const [userFeedback, setUserFeedback] = useState("");
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -59,6 +85,7 @@ export default function SettingsPage() {
         setFeedback({ type: "error", text: "Não foi possível carregar as configurações." });
       } else {
         setProfile({
+          id: user.id,
           full_name: data?.full_name || user.user_metadata?.full_name || "",
           unit: data?.unit || "",
           role: data?.role || "agente",
@@ -68,6 +95,18 @@ export default function SettingsPage() {
 
       const storedNotifications = window.localStorage.getItem("mrp-notifications-enabled");
       setNotifications(storedNotifications !== "false");
+
+      if (data?.role === "administrador") {
+        const { data: managedUsers, error: usersError } = await client
+          .from("profiles")
+          .select("id, full_name, unit, role, updated_at")
+          .order("full_name", { ascending: true });
+        if (usersError) {
+          setUserFeedback("Não foi possível carregar os usuários do sistema.");
+        } else {
+          setUsers(managedUsers || []);
+        }
+      }
       setLoading(false);
     }
 
@@ -112,6 +151,53 @@ export default function SettingsPage() {
     if (supabase) await supabase.auth.signOut();
     window.location.assign("/auth/login");
   }
+
+  function openUserEditor(user: ManagedUser) {
+    setEditingUser(user);
+    setUserForm({ full_name: user.full_name, unit: user.unit || "", role: user.role });
+    setUserFeedback("");
+  }
+
+  async function saveUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingUser) return;
+    setUserSaving(true);
+    setUserFeedback("");
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setUserFeedback("Supabase não está configurado neste ambiente.");
+      setUserSaving(false);
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/auth/login");
+      setUserSaving(false);
+      return;
+    }
+
+    const { error } = await supabase.from("profiles").update({
+      full_name: userForm.full_name.trim(),
+      unit: userForm.unit.trim() || null,
+      role: userForm.role,
+      updated_at: new Date().toISOString()
+    }).eq("id", editingUser.id);
+
+    if (error) {
+      setUserFeedback("Não foi possível atualizar o usuário. Verifique suas permissões.");
+    } else {
+      setUsers((current) => current.map((item) => item.id === editingUser.id ? { ...item, ...userForm, unit: userForm.unit.trim() || null, updated_at: new Date().toISOString() } : item));
+      setEditingUser(null);
+      setUserFeedback("Usuário atualizado com sucesso.");
+      if (editingUser.id === user.id) {
+        setProfile((current) => ({ ...current, full_name: userForm.full_name.trim(), unit: userForm.unit.trim(), role: userForm.role }));
+      }
+    }
+    setUserSaving(false);
+  }
+
+  const filteredUsers = users.filter((user) => `${user.full_name} ${user.unit || ""} ${roleLabels[user.role] || user.role}`.toLowerCase().includes(userQuery.toLowerCase()));
 
   if (loading) {
     return <main className="profile-loading"><LoaderCircle className="spin" size={22} /> Carregando configurações...</main>;
@@ -160,8 +246,18 @@ export default function SettingsPage() {
           </div>
 
           <section className="panel settings-danger-card"><div><h2>Sessão atual</h2><p>Encerrar o acesso neste dispositivo. Você poderá entrar novamente usando suas credenciais.</p></div><button type="button" className="secondary-button logout-button" onClick={() => void logout()}><LogOut size={16} /> Sair do sistema</button></section>
+
+          {profile.role === "administrador" && <section className="panel user-management-panel">
+            <div className="panel-heading"><div><h2>Controle de usuários</h2><p>Gerencie nome, unidade e nível de acesso dos usuários cadastrados.</p></div><span className="role-pill"><Users size={13} /> Administrador</span></div>
+            <div className="user-management-toolbar"><label className="search"><Users size={16} /><input placeholder="Buscar por nome, unidade ou cargo..." value={userQuery} onChange={(event) => setUserQuery(event.target.value)} /></label><span>{filteredUsers.length} usuário(s)</span></div>
+            {userFeedback && <p className="profile-feedback success">{userFeedback}</p>}
+            {filteredUsers.length === 0 ? <div className="empty-state"><Users size={25} /><strong>Nenhum usuário encontrado</strong></div> : <div className="table-wrap"><table><thead><tr><th>USUÁRIO</th><th>UNIDADE</th><th>CARGO</th><th>ATUALIZADO</th><th /></tr></thead><tbody>{filteredUsers.map((user) => <tr key={user.id}><td><strong>{user.full_name || "Sem nome"}</strong>{user.id === profile.id && <small>Usuário atual</small>}</td><td>{user.unit || "Não definida"}</td><td><span className="role-pill">{roleLabels[user.role] || user.role}</span></td><td className="muted">{new Date(user.updated_at).toLocaleDateString("pt-BR")}</td><td><button className="more-button" type="button" aria-label={`Editar ${user.full_name}`} onClick={() => openUserEditor(user)}><Pencil size={15} /></button></td></tr>)}</tbody></table></div>}
+            <p className="settings-admin-help">A criação, remoção e redefinição de senha das contas continuam sendo administradas pelo Supabase Auth.</p>
+          </section>}
         </div>
       </section>
+
+      {editingUser && <div className="modal-backdrop" onClick={() => setEditingUser(null)}><form className="modal" onSubmit={saveUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setEditingUser(null)}><X size={18} /></button><p className="eyebrow">CONTROLE DE USUÁRIO</p><h2>Editar usuário</h2><label>Nome completo<input required minLength={2} value={userForm.full_name} onChange={(event) => setUserForm({ ...userForm, full_name: event.target.value })} /></label><label>Unidade operacional<input value={userForm.unit} onChange={(event) => setUserForm({ ...userForm, unit: event.target.value })} /></label><label>Cargo<select value={userForm.role} onChange={(event) => setUserForm({ ...userForm, role: event.target.value })}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label>{userFeedback && <p className="form-error">{userFeedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setEditingUser(null)}>Cancelar</button><button className="primary-button" disabled={userSaving}>{userSaving ? "Salvando..." : "Salvar usuário"}</button></div></form></div>}
     </main>
   );
 }
