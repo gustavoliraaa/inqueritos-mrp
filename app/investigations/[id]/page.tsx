@@ -136,6 +136,7 @@ export default function InvestigationDetailPage() {
       router.replace("/auth/login");
       return;
     }
+    const selectedPerson = people.find((person) => person.id === personForm.personId);
     const { error } = await supabase.from("investigation_people").insert({
       investigation_id: item.id,
       person_id: personForm.personId,
@@ -146,9 +147,20 @@ export default function InvestigationDetailPage() {
     if (error) {
       setFeedback({ type: "error", text: error.code === "23505" ? "Essa pessoa já possui esse papel neste inquérito." : "Não foi possível criar o vínculo." });
     } else {
+      const { error: timelineError } = await supabase.from("timeline_events").insert({
+        investigation_id: item.id,
+        event_type: "person_linked",
+        title: `${selectedPerson?.name || "Pessoa"} vinculada ao inquérito`,
+        description: `${selectedPerson?.identifier || "Cadastro"} adicionada como ${personRoleLabels[personForm.role] || personForm.role}${personForm.notes.trim() ? `. Contexto: ${personForm.notes.trim()}` : "."}`,
+        actor_id: user.id
+      });
+      if (timelineError) {
+        setFeedback({ type: "error", text: "A pessoa foi vinculada, mas o evento não pôde ser registrado na linha do tempo." });
+      } else {
+        setFeedback({ type: "success", text: "Pessoa vinculada ao inquérito." });
+      }
       setPersonForm({ personId: "", role: "investigado", notes: "" });
       await loadCase();
-      setFeedback({ type: "success", text: "Pessoa vinculada ao inquérito." });
     }
     setLinkingPerson(false);
   }
@@ -156,9 +168,28 @@ export default function InvestigationDetailPage() {
   async function unlinkPerson(personId: string, role: string) {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !item) return;
+    const linkedPerson = linkedPeople.find((person) => person.id === personId && person.role === role);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
     const { error } = await supabase.from("investigation_people").delete().eq("investigation_id", item.id).eq("person_id", personId).eq("role", role);
-    if (error) setFeedback({ type: "error", text: "Não foi possível remover o vínculo." });
-    else await loadCase();
+    if (error) {
+      setFeedback({ type: "error", text: "Não foi possível remover o vínculo." });
+    } else {
+      const { error: timelineError } = await supabase.from("timeline_events").insert({
+        investigation_id: item.id,
+        event_type: "person_unlinked",
+        title: `${linkedPerson?.name || "Pessoa"} removida do inquérito`,
+        description: `${linkedPerson?.identifier || "Cadastro"} deixou de exercer o papel de ${personRoleLabels[role] || role}.`,
+        actor_id: user.id
+      });
+      setFeedback(timelineError
+        ? { type: "error", text: "O vínculo foi removido, mas o evento não pôde ser registrado na linha do tempo." }
+        : { type: "success", text: "Vínculo removido e registrado na linha do tempo." });
+      await loadCase();
+    }
   }
 
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" size={22} /> Carregando inquérito...</main>;
