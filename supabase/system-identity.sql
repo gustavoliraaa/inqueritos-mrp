@@ -20,9 +20,19 @@ on conflict (id) do nothing;
 
 alter table public.system_identity enable row level security;
 
+drop policy if exists "authenticated users can read system identity" on public.system_identity;
+drop policy if exists "public can read system identity" on public.system_identity;
+drop policy if exists "administrators can insert system identity" on public.system_identity;
+drop policy if exists "administrators can update system identity" on public.system_identity;
+
 create policy "authenticated users can read system identity"
 on public.system_identity for select
 to authenticated
+using (true);
+
+create policy "public can read system identity"
+on public.system_identity for select
+to anon
 using (true);
 
 create policy "administrators can insert system identity"
@@ -45,6 +55,10 @@ with check (
 insert into storage.buckets (id, name, public)
 values ('system-assets', 'system-assets', true)
 on conflict (id) do update set public = true;
+
+drop policy if exists "authenticated administrators can upload system assets" on storage.objects;
+drop policy if exists "authenticated administrators can update system assets" on storage.objects;
+drop policy if exists "authenticated administrators can delete system assets" on storage.objects;
 
 create policy "authenticated administrators can upload system assets"
 on storage.objects for insert
