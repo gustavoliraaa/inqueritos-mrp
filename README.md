@@ -47,6 +47,11 @@ no SQL Editor. O módulo está disponível em `/vehicles`.
 O cadastro de organizações está disponível em `/organizations` e utiliza a
 tabela central `entities` com `entity_type = organization`.
 
+Para habilitar identificadores automáticos de locais, execute
+[`supabase/locations-numbering.sql`](./supabase/locations-numbering.sql) uma vez
+no SQL Editor. O módulo está disponível em `/locations` e utiliza a tabela
+central `entities` com `entity_type = location`.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
