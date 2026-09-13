@@ -84,6 +84,16 @@ limite de utilizações do convite. O usuário preenche o formulário público e
 bloqueado até a liberação manual. A migração também cria as funções SQL para
 controlar atomicamente os usos do convite.
 
+Para limpar os dados operacionais de demonstração antes de iniciar o uso real,
+execute [`supabase/cleanup-demo-data.sql`](./supabase/cleanup-demo-data.sql) no
+SQL Editor do Supabase. O script remove inquéritos, pessoas, entidades,
+evidências, diligências, relacionamentos, auditoria, eventos e convites, mas
+preserva perfis, permissões e a estrutura do banco. Os arquivos do bucket
+privado de evidências devem ser removidos pelo Storage do painel Supabase ou
+pela Storage API; exclusões diretas em `storage.objects` são bloqueadas. Faça
+um backup antes de executar o script, pois os registros removidos não poderão
+ser recuperados pelo sistema.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
