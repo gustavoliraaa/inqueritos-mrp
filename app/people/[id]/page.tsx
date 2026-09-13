@@ -115,11 +115,12 @@ export default function PersonDetailPage() {
           <section className="panel person-cases-panel">
             <div className="panel-heading"><div><h2>Histórico em inquéritos</h2><p>Casos em que esta pessoa foi relacionada.</p></div><strong className="case-count">{links.length}</strong></div>
             {links.length === 0 ? <div className="empty-state"><span>Nenhum inquérito relacionado.</span></div> : <div className="person-case-list">{links.map((link) => {
-              if (!link.investigations) return null;
-              return <button className="person-case-row" key={`${link.investigations.id}-${link.role}`} onClick={() => router.push(`/investigations/${link.investigations.id}`)}>
-                <div><strong>{link.investigations.identifier}</strong><span>{link.investigations.title}</span></div>
+              const investigation = link.investigations;
+              if (!investigation) return null;
+              return <button className="person-case-row" key={`${investigation.id}-${link.role}`} onClick={() => router.push(`/investigations/${investigation.id}`)}>
+                <div><strong>{investigation.identifier}</strong><span>{investigation.title}</span></div>
                 <span className="role-pill">{roles[link.role] || link.role}</span>
-                <span className={`status status-${link.investigations.status}`}>{statuses[link.investigations.status] || link.investigations.status}</span>
+                <span className={`status status-${investigation.status}`}>{statuses[investigation.status] || investigation.status}</span>
                 <span className="case-arrow">→</span>
               </button>;
             })}</div>}
