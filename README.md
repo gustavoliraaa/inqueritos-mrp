@@ -71,6 +71,8 @@ Para habilitar as liberações de funcionalidades por cargo, execute
 [`supabase/role-permissions.sql`](./supabase/role-permissions.sql) uma vez no
 SQL Editor. A página `/settings/users`, disponível para administradores, permite
 configurar as ações de visualizar, criar, editar e excluir para os cargos padrão.
+O script pode ser executado novamente com segurança caso a tabela ou as políticas
+já existam.
 
 ## Publicar
 

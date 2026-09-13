@@ -13,6 +13,12 @@ alter table public.role_permissions
 
 alter table public.role_permissions enable row level security;
 
+drop policy if exists "authenticated users can read role permissions"
+  on public.role_permissions;
+
+drop policy if exists "administrators can manage role permissions"
+  on public.role_permissions;
+
 create policy "authenticated users can read role permissions"
   on public.role_permissions for select to authenticated using (true);
 
