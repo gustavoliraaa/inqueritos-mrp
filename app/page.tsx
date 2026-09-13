@@ -14,6 +14,7 @@ import {
   MapPin,
   Network,
   Plus,
+  Phone,
   Search,
   Settings,
   Shield,
@@ -78,6 +79,7 @@ const navItems = [
   { label: "Veículos", icon: Car },
   { label: "Organizações", icon: Shield },
   { label: "Locais", icon: MapPin },
+  { label: "Telefones", icon: Phone },
   { label: "Evidências", icon: Archive },
   { label: "Inteligência", icon: Network }
 ];
@@ -147,7 +149,7 @@ export default function HomePage() {
         <p className="nav-label">NAVEGAÇÃO</p>
         <nav>
           {navItems.map(({ label, icon: Icon }) => (
-            <button className={`nav-item ${active === label ? "active" : ""}`} key={label} onClick={() => label === "Inquéritos" ? router.push("/investigations") : label === "Pessoas" ? router.push("/people") : label === "Veículos" ? router.push("/vehicles") : label === "Organizações" ? router.push("/organizations") : label === "Locais" ? router.push("/locations") : setActive(label)}>
+            <button className={`nav-item ${active === label ? "active" : ""}`} key={label} onClick={() => label === "Inquéritos" ? router.push("/investigations") : label === "Pessoas" ? router.push("/people") : label === "Veículos" ? router.push("/vehicles") : label === "Organizações" ? router.push("/organizations") : label === "Locais" ? router.push("/locations") : label === "Telefones" ? router.push("/phones") : setActive(label)}>
               <Icon size={18} /><span>{label}</span>
               {label === "Inquéritos" && <b>12</b>}
             </button>

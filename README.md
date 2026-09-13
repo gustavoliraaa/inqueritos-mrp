@@ -52,6 +52,11 @@ Para habilitar identificadores automáticos de locais, execute
 no SQL Editor. O módulo está disponível em `/locations` e utiliza a tabela
 central `entities` com `entity_type = location`.
 
+Para habilitar identificadores automáticos de telefones, execute
+[`supabase/phones-numbering.sql`](./supabase/phones-numbering.sql) uma vez no
+SQL Editor. O módulo está disponível em `/phones` e utiliza a tabela central
+`entities` com `entity_type = phone`.
+
 ## Publicar
 
 - Suba o repositório no GitHub.

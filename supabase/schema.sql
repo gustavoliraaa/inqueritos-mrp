@@ -13,6 +13,8 @@ create sequence if not exists public.vehicle_identifier_seq;
 
 create sequence if not exists public.location_identifier_seq;
 
+create sequence if not exists public.phone_identifier_seq;
+
 create or replace function public.next_investigation_identifier()
 returns text
 language sql
@@ -44,6 +46,14 @@ language sql
 volatile
 as $$
   select 'LOC-' || lpad(nextval('public.location_identifier_seq')::text, 6, '0');
+$$;
+
+create or replace function public.next_phone_identifier()
+returns text
+language sql
+volatile
+as $$
+  select 'TEL-' || lpad(nextval('public.phone_identifier_seq')::text, 6, '0');
 $$;
 
 create table public.profiles (
