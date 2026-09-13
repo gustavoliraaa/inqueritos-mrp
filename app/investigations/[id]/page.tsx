@@ -206,7 +206,8 @@ export default function InvestigationDetailPage() {
     }
     const { data: token, error } = await supabase.rpc("create_investigation_share", { target_investigation_id: item.id });
     if (error || !token) {
-      setFeedback({ type: "error", text: "Não foi possível gerar o link público. Execute a migração de compartilhamento no Supabase." });
+      const details = error?.message ? ` Detalhes: ${error.message}` : "";
+      setFeedback({ type: "error", text: `Não foi possível gerar o link público. Execute novamente a migração de compartilhamento no Supabase.${details}` });
     } else {
       const url = `${window.location.origin}/public/investigations/${token}`;
       try {

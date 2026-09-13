@@ -31,7 +31,11 @@ begin
   where investigation_id = target_investigation_id
     and revoked_at is null;
 
-  new_token := encode(gen_random_bytes(24), 'base64url');
+  new_token := translate(
+    replace(replace(encode(gen_random_bytes(24), 'base64'), '+', '-'), '/', '_'),
+    '=',
+    ''
+  );
   insert into public.investigation_shares (investigation_id, token, created_by)
   values (target_investigation_id, new_token, auth.uid());
 
@@ -53,3 +57,6 @@ as $$
 $$;
 
 create index if not exists investigation_shares_token_idx on public.investigation_shares(token);
+
+grant execute on function public.create_investigation_share(uuid) to authenticated;
+grant execute on function public.revoke_investigation_share(uuid) to authenticated;
