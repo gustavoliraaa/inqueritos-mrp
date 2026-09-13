@@ -83,6 +83,21 @@ export default function EvidencesPage() {
     setShowForm(true);
   }
 
+  async function openAttachment(evidence: Evidence) {
+    if (!evidence.storage_path) return;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setError("Supabase não está configurado neste ambiente.");
+      return;
+    }
+    const { data, error: signedUrlError } = await supabase.storage.from("evidence-files").createSignedUrl(evidence.storage_path, 300);
+    if (signedUrlError || !data?.signedUrl) {
+      setError("Não foi possível abrir o anexo.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
   async function saveEvidence(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -163,20 +178,6 @@ export default function EvidencesPage() {
       await loadData();
     }
 
-    async function openAttachment(evidence: Evidence) {
-      if (!evidence.storage_path) return;
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) {
-        setError("Supabase não está configurado neste ambiente.");
-        return;
-      }
-      const { data, error: signedUrlError } = await supabase.storage.from("evidence-files").createSignedUrl(evidence.storage_path, 300);
-      if (signedUrlError || !data?.signedUrl) {
-        setError("Não foi possível abrir o anexo.");
-        return;
-      }
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-    }
     setSaving(false);
   }
 
