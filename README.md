@@ -57,6 +57,11 @@ Para habilitar identificadores automáticos de telefones, execute
 SQL Editor. O módulo está disponível em `/phones` e utiliza a tabela central
 `entities` com `entity_type = phone`.
 
+Para habilitar identificadores automáticos de evidências, execute
+[`supabase/evidences-numbering.sql`](./supabase/evidences-numbering.sql) uma vez
+no SQL Editor. O módulo está disponível em `/evidences` e permite vincular cada
+registro a um inquérito.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
