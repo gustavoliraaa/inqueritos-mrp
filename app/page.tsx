@@ -147,7 +147,7 @@ export default function HomePage() {
         <p className="nav-label">NAVEGAÇÃO</p>
         <nav>
           {navItems.map(({ label, icon: Icon }) => (
-            <button className={`nav-item ${active === label ? "active" : ""}`} key={label} onClick={() => setActive(label)}>
+            <button className={`nav-item ${active === label ? "active" : ""}`} key={label} onClick={() => label === "Inquéritos" ? router.push("/investigations") : setActive(label)}>
               <Icon size={18} /><span>{label}</span>
               {label === "Inquéritos" && <b>12</b>}
             </button>

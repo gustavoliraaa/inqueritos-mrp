@@ -31,6 +31,11 @@ Se um usuário aparecer em **Authentication → Users**, mas não aparecer em
 `public.profiles`, execute [`supabase/fix-profiles-trigger.sql`](./supabase/fix-profiles-trigger.sql).
 Essa migração corrige o trigger e cria os perfis que ficaram faltando.
 
+Para habilitar a numeração automática dos inquéritos, execute
+[`supabase/investigations-numbering.sql`](./supabase/investigations-numbering.sql)
+uma vez no SQL Editor. Depois disso, a página `/investigations` permite listar e
+criar inquéritos persistidos no Supabase.
+
 ## Publicar
 
 - Suba o repositório no GitHub.

@@ -5,6 +5,17 @@ create type public.case_status as enum ('aberto', 'em_investigacao', 'aguardando
 create type public.access_level as enum ('normal', 'restrito', 'sigiloso', 'alto_sigilo');
 create type public.priority_level as enum ('baixa', 'media', 'alta');
 
+create sequence if not exists public.investigation_identifier_seq;
+
+create or replace function public.next_investigation_identifier()
+returns text
+language sql
+volatile
+as $$
+  select 'IP-' || extract(year from now())::text || '-' ||
+    lpad(nextval('public.investigation_identifier_seq')::text, 6, '0');
+$$;
+
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
