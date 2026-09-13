@@ -159,7 +159,7 @@ export default function HomePage() {
         </nav>
         <p className="nav-label nav-label-bottom">SISTEMA</p>
         <nav>
-          <button className="nav-item" onClick={() => setActive("Auditoria")}><BookOpen size={18} /><span>Auditoria</span></button>
+          <button className="nav-item" onClick={() => router.push("/audit")}><BookOpen size={18} /><span>Auditoria</span></button>
           <button className="nav-item" onClick={() => setActive("Configurações")}><Settings size={18} /><span>Configurações</span></button>
         </nav>
         <div className="sidebar-footer">
