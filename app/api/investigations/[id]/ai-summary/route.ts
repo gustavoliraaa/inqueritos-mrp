@@ -51,7 +51,7 @@ export async function POST(_request: Request, { params }: RouteContext) {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
       temperature: 0.2,
       max_tokens: 1400,
       messages: [
@@ -71,7 +71,15 @@ export async function POST(_request: Request, { params }: RouteContext) {
   if (!response.ok) {
     const details = await response.text();
     console.error("Groq request failed", response.status, details);
-    return NextResponse.json({ error: "Não foi possível gerar o rascunho com a IA." }, { status: 502 });
+    let providerMessage = "";
+    try {
+      const parsed = JSON.parse(details) as { error?: { message?: string } };
+      providerMessage = parsed.error?.message || "";
+    } catch {
+      providerMessage = "";
+    }
+    const reason = providerMessage ? ` Motivo: ${providerMessage}` : "";
+    return NextResponse.json({ error: `A Groq recusou a solicitação (HTTP ${response.status}).${reason}` }, { status: 502 });
   }
 
   const result: { choices?: { message?: { content?: string } }[] } = await response.json();

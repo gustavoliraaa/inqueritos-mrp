@@ -16,7 +16,7 @@ dashboard, módulos, autenticação e configurações.
 
 Para habilitar os rascunhos de análise com Llama, configure `GROQ_API_KEY` somente
 na Vercel (Production, Preview e Development). Opcionalmente, defina
-`GROQ_MODEL`; o padrão é `llama-3.3-70b-versatile`. Depois de salvar a variável,
+`GROQ_MODEL`; o padrão é `openai/gpt-oss-120b`. Depois de salvar a variável,
 faça um novo deploy. Na página de relatório, o botão **Gerar rascunho com IA**
 cria uma análise preliminar baseada exclusivamente nos dados do inquérito. O
 texto é um rascunho e precisa de revisão humana antes de ser utilizado ou
