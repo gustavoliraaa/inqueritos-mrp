@@ -26,6 +26,10 @@ Para habilitar a identidade visual configurável, execute
 [`supabase/system-identity.sql`](./supabase/system-identity.sql) no SQL Editor.
 Administradores poderão editar o nome, logo, cores, slug, nome do navegador e
 metadados de compartilhamento em `/settings/identity`.
+Para que WhatsApp e outras redes encontrem a imagem, configure também
+`NEXT_PUBLIC_SITE_URL` com a URL pública da Vercel e use uma imagem pública
+absoluta (preferencialmente 1200 × 630 px). O preview pode permanecer em cache
+por alguns minutos após a alteração.
 
 ## Autenticação
 
