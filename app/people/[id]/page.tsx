@@ -41,16 +41,17 @@ export default function PersonDetailPage() {
       setLoading(false);
       return;
     }
+    const client = supabase;
 
     async function loadPerson() {
-      const { data, error: personError } = await supabase.from("people").select("id, identifier, name, document_id, aliases, birth_date, notes, status, updated_at").eq("id", params.id).maybeSingle();
+      const { data, error: personError } = await client.from("people").select("id, identifier, name, document_id, aliases, birth_date, notes, status, updated_at").eq("id", params.id).maybeSingle();
       if (personError || !data) {
         setError("Pessoa não encontrada ou sem permissão de acesso.");
         setLoading(false);
         return;
       }
       setPerson(data);
-      const { data: relationshipData } = await supabase
+      const { data: relationshipData } = await client
         .from("investigation_people")
         .select("role, notes, investigations(id, identifier, title, status, priority)")
         .eq("person_id", params.id);
