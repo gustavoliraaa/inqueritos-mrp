@@ -107,6 +107,12 @@ Se o banco já existia, execute o arquivo novamente para atualizar a função
 O botão **Exportar PDF** abre a impressão otimizada do inquérito. No diálogo do
 navegador, selecione **Salvar como PDF**.
 
+A página **Ver relatório** (`/investigations/[id]/report`) e o link público usam
+o mesmo relatório estruturado, com objeto da investigação, pessoas, entidades,
+evidências, diligências e linha do tempo. Esta primeira versão não usa IA:
+os textos exibidos são os dados cadastrados no Supabase, preservando
+rastreabilidade e evitando conteúdo inventado.
+
 ## Publicar
 
 - Suba o repositório no GitHub.

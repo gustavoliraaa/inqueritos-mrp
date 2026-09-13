@@ -403,10 +403,64 @@ body {
   text-align: center;
 }
 
+.report-page {
+  min-height: 100vh;
+  padding: 28px;
+  background: var(--bg);
+}
+
+.report-toolbar {
+  width: min(920px, 100%);
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto 16px;
+}
+
+.investigation-report {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 42px 48px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.report-header h1 { margin: 8px 0 4px; font-size: 28px; }
+.report-identifier { color: var(--muted); font-weight: 700; letter-spacing: .08em; }
+.report-cover-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin: 24px 0 32px; border: 1px solid var(--line); background: var(--line); }
+.report-cover-grid div { display: grid; gap: 6px; padding: 14px; background: #fbfbff; }
+.report-cover-grid span { color: var(--muted); font-size: 10px; font-weight: 700; }
+.report-cover-grid strong { font-size: 13px; }
+.report-section { margin-top: 30px; break-inside: avoid; }
+.report-section h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 16px; }
+.report-section p { line-height: 1.6; white-space: pre-wrap; }
+.report-table, .report-timeline { display: grid; gap: 8px; }
+.report-row, .report-timeline > div { display: grid; gap: 4px; padding: 11px 13px; border-left: 3px solid var(--purple); background: #fafaff; }
+.report-row span, .report-row small, .report-timeline small { color: var(--muted); font-size: 11px; }
+.report-empty { color: var(--muted); font-size: 13px; }
+.report-footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+
+@media (max-width: 680px) {
+  .report-page { padding: 12px; }
+  .investigation-report { padding: 24px 18px; }
+  .report-cover-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media print {
   .sidebar,
   .topbar,
   .investigation-actions,
+  .report-toolbar,
   .profile-actions,
   .link-person-form,
   .remove-link {
@@ -427,6 +481,19 @@ body {
 
   .panel {
     break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .report-page,
+  .public-share-page {
+    padding: 0;
+    background: #fff;
+  }
+
+  .investigation-report {
+    width: 100%;
+    padding: 0;
+    border: 0;
     box-shadow: none;
   }
 }
