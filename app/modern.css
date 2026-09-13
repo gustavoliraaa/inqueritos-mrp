@@ -251,6 +251,58 @@ body {
   font-size: 10px;
 }
 
+.investigation-selector-label > select {
+  width: 100%;
+  height: 43px;
+  margin-top: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: 0;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.investigation-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin-top: 7px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfbff;
+  color: var(--muted);
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.investigation-search:focus-within {
+  border-color: var(--purple);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(101, 87, 216, .12);
+}
+
+.investigation-search input {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.investigation-selector-label small {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
 @media (max-width: 520px) {
   .role-selector {
     grid-template-columns: 1fr;
