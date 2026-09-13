@@ -50,6 +50,8 @@ export default function UserManagementPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteSaving, setInviteSaving] = useState(false);
   const [inviteUrl, setInviteUrl] = useState("");
+  const [inviteRole, setInviteRole] = useState("agente");
+  const [inviteMaxUses, setInviteMaxUses] = useState("1");
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -148,6 +150,8 @@ export default function UserManagementPage() {
     setFeedback("");
     const response = await fetch("/api/admin/users", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: inviteRole, max_uses: Number(inviteMaxUses) })
     });
     const result = await response.json() as { error?: string; url?: string };
     if (!response.ok) {
@@ -240,7 +244,7 @@ export default function UserManagementPage() {
       <section className="content">
         <header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><button className="breadcrumb-link" onClick={() => router.push("/settings")}>Configurações</button><span>/</span><strong>Gestão de usuários</strong></div></header>
         <div className="page people-page">
-          <div className="page-heading"><div><p className="eyebrow">ADMINISTRAÇÃO DO SISTEMA</p><h1>Gestão de usuários</h1><p className="muted">Gerencie os perfis, unidades e níveis de acesso dos usuários cadastrados.</p></div><div className="page-heading-actions"><button className="secondary-button" onClick={() => router.push("/settings")}><ArrowLeft size={16} /> Configurações</button><button className="primary-button" onClick={() => setShowInvite(true)}><Plus size={16} /> Convidar usuário</button></div></div>
+          <div className="page-heading"><div><p className="eyebrow">ADMINISTRAÇÃO DO SISTEMA</p><h1>Gestão de usuários</h1><p className="muted">Gerencie os perfis, unidades e níveis de acesso dos usuários cadastrados.</p></div><div className="page-heading-actions"><button className="secondary-button" onClick={() => router.push("/settings")}><ArrowLeft size={16} /> Configurações</button><button className="primary-button" onClick={() => { setInviteUrl(""); setFeedback(""); setShowInvite(true); }}><Plus size={16} /> Convidar usuário</button></div></div>
           <section className="panel user-management-panel">
             <div className="panel-heading"><div><h2>Usuários do sistema</h2><p>As contas e senhas continuam sendo administradas pelo Supabase Auth.</p></div><span className="role-pill"><Users size={13} /> Administrador</span></div>
             <div className="user-management-toolbar"><label className="search"><Search size={16} /><input placeholder="Buscar por nome, unidade ou cargo..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filteredUsers.length} usuário(s)</span></div>
@@ -256,7 +260,7 @@ export default function UserManagementPage() {
       </section>
 
       {editingUser && <div className="modal-backdrop" onClick={() => setEditingUser(null)}><form className="modal" onSubmit={saveUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setEditingUser(null)}><X size={18} /></button><p className="eyebrow">GESTÃO DE USUÁRIOS</p><h2>Editar usuário</h2><label>Nome completo<input required minLength={2} value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label><label>Unidade operacional<input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label><label>Cargo<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label>{feedback && <p className="form-error">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setEditingUser(null)}>Cancelar</button><button className="primary-button" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</button></div></form></div>}
-      {showInvite && <div className="modal-backdrop" onClick={() => setShowInvite(false)}><form className="modal" onSubmit={inviteUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowInvite(false)}><X size={18} /></button><p className="eyebrow">URL PÚBLICA</p><h2>Gerar convite</h2><p className="modal-help">Gere um link único para enviar ao usuário. Ele preencherá nome, e-mail, senha, unidade e cargo.</p>{inviteUrl && <label>URL para enviar<input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /></label>}{feedback && <p className="form-success">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowInvite(false)}>Fechar</button><button className="primary-button" disabled={inviteSaving}>{inviteSaving ? "Gerando..." : "Gerar URL pública"}</button></div></form></div>}
+      {showInvite && <div className="modal-backdrop" onClick={() => setShowInvite(false)}><form className="modal" onSubmit={inviteUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowInvite(false)}><X size={18} /></button><p className="eyebrow">URL PÚBLICA</p><h2>Gerar convite</h2><p className="modal-help">Defina o cargo e quantas vezes o link poderá ser utilizado. O usuário preencherá os demais dados.</p><label>Cargo pré-definido<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value)}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label><label>Quantidade de usos<input type="number" min="1" max="1000" required value={inviteMaxUses} onChange={(event) => setInviteMaxUses(event.target.value)} /></label>{inviteUrl && <label>URL para enviar<div className="input-with-action"><input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /><button type="button" className="secondary-button" onClick={() => void navigator.clipboard.writeText(inviteUrl)}>Copiar</button></div></label>}{feedback && <p className="form-success">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowInvite(false)}>Fechar</button><button className="primary-button" disabled={inviteSaving}>{inviteSaving ? "Gerando..." : "Gerar URL pública"}</button></div></form></div>}
     </main>
   );
 }

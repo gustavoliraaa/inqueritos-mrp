@@ -78,9 +78,11 @@ Para habilitar convites administrativos e a liberação manual de acesso, execut
 [`supabase/user-access.sql`](./supabase/user-access.sql) e configure
 `SUPABASE_SERVICE_ROLE_KEY` somente nas variáveis de ambiente da Vercel/servidor.
 Nunca exponha essa chave como variável `NEXT_PUBLIC_*`.
-Administradores geram uma URL em `/settings/users`; o usuário preenche o
-formulário público em `/auth/invite/[token]` e permanece bloqueado até a
-liberação manual.
+Administradores geram uma URL em `/settings/users`, definindo o cargo e o
+limite de utilizações do convite. O usuário preenche o formulário público em
+`/auth/invite/[token]`; o cargo é aplicado automaticamente e o perfil permanece
+bloqueado até a liberação manual. A migração também cria as funções SQL para
+controlar atomicamente os usos do convite.
 
 ## Publicar
 

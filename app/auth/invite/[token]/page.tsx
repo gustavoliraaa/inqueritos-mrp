@@ -1,14 +1,35 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+
+const roleLabels: Record<string, string> = {
+  agente: "Agente",
+  investigador: "Investigador",
+  delegado: "Delegado",
+  corregedoria: "Corregedoria",
+  administrador: "Administrador"
+};
 
 export default function PublicInvitePage() {
   const params = useParams<{ token: string }>();
-  const [form, setForm] = useState({ full_name: "", email: "", password: "", unit: "", role: "agente" });
+  const [form, setForm] = useState({ full_name: "", email: "", password: "", unit: "" });
+  const [inviteRole, setInviteRole] = useState("");
+  const [remainingUses, setRemainingUses] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    void fetch(`/api/public/invites/${params.token}`)
+      .then(async (response) => {
+        const result = await response.json() as { error?: string; role?: string; remaining_uses?: number };
+        if (!response.ok) throw new Error(result.error || "Este convite não está disponível.");
+        setInviteRole(result.role || "");
+        setRemainingUses(result.remaining_uses ?? null);
+      })
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Este convite não está disponível."));
+  }, [params.token]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,7 +41,7 @@ export default function PublicInvitePage() {
     if (!response.ok) setError(result.error || "Não foi possível enviar o cadastro.");
     else {
       setMessage("Cadastro enviado. Aguarde a liberação de um administrador para acessar o sistema.");
-      setForm({ full_name: "", email: "", password: "", unit: "", role: "agente" });
+      setForm({ full_name: "", email: "", password: "", unit: "" });
     }
     setSaving(false);
   }
@@ -35,7 +56,8 @@ export default function PublicInvitePage() {
           <label>E-mail<input type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
           <label>Senha<input type="password" required minLength={6} autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></label>
           <label>Unidade<input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label>
-          <label>Cargo<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label>
+          <label>Cargo pré-definido<input readOnly value={roleLabels[inviteRole] || "Carregando..."} /></label>
+          {remainingUses !== null && <p className="muted">Usos restantes neste convite: {remainingUses}</p>}
           {error && <p className="form-error">{error}</p>}{message && <p className="form-success">{message}</p>}
           <button className="primary-button auth-submit" disabled={saving}>{saving ? "Enviando..." : "Enviar cadastro"}</button>
         </form>
