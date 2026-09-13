@@ -174,8 +174,26 @@ alter table public.relationships enable row level security;
 alter table public.audit_logs enable row level security;
 alter table public.timeline_events enable row level security;
 
+create or replace function public.current_user_role()
+returns public.user_role
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select role from public.profiles where id = auth.uid();
+$$;
+
 create policy "authenticated users can read profiles" on public.profiles for select to authenticated using (true);
-create policy "users can update own profile" on public.profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+create policy "users can update own profile details" on public.profiles for update to authenticated
+  using (id = auth.uid())
+  with check (
+    id = auth.uid()
+    and role = public.current_user_role()
+  );
+create policy "administrators can manage profiles" on public.profiles for update to authenticated
+  using (public.current_user_role() = 'administrador'::public.user_role)
+  with check (public.current_user_role() = 'administrador'::public.user_role);
 create policy "authenticated users can read investigations" on public.investigations for select to authenticated using (true);
 create policy "authenticated users can create investigations" on public.investigations for insert to authenticated with check (created_by = auth.uid());
 create policy "authenticated users can update investigations" on public.investigations for update to authenticated using (true) with check (true);

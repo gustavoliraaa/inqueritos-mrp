@@ -22,6 +22,11 @@ No painel do Supabase, configure em **Authentication → URL Configuration**:
 - **Site URL**: a URL da Vercel em produção.
 - **Redirect URLs**: `https://seu-dominio.vercel.app/auth/callback` e `http://localhost:3000/auth/callback`.
 
+Para promover o primeiro usuário a administrador, execute uma vez o arquivo
+[`supabase/promote-gustavo-admin.sql`](./supabase/promote-gustavo-admin.sql) no
+SQL Editor do Supabase. O último `select` deve retornar o usuário com `role`
+igual a `administrador`.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
