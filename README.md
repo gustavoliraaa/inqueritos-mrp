@@ -14,6 +14,14 @@ dashboard, módulos, autenticação e configurações.
 4. No Supabase, execute [`supabase/schema.sql`](./supabase/schema.sql) no SQL Editor.
 5. Execute `npm run dev` e abra `http://localhost:3000`.
 
+Para habilitar os rascunhos de análise com Llama, configure `GROQ_API_KEY` somente
+na Vercel (Production, Preview e Development). Opcionalmente, defina
+`GROQ_MODEL`; o padrão é `llama-3.3-70b-versatile`. Depois de salvar a variável,
+faça um novo deploy. Na página de relatório, o botão **Gerar rascunho com IA**
+cria uma análise preliminar baseada exclusivamente nos dados do inquérito. O
+texto é um rascunho e precisa de revisão humana antes de ser utilizado ou
+compartilhado.
+
 ## Autenticação
 
 O cadastro e login usam o Supabase Auth. O banco cria automaticamente um registro

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, FileDown, LoaderCircle } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import InvestigationReport, { type InvestigationReportData } from "../../../../components/investigation-report";
@@ -11,6 +11,9 @@ export default function InvestigationReportPage() {
   const params = useParams<{ id: string }>();
   const [data, setData] = useState<InvestigationReportData | null>(null);
   const [error, setError] = useState("");
+  const [aiDraft, setAiDraft] = useState("");
+  const [aiError, setAiError] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     async function loadReport() {
@@ -37,8 +40,26 @@ export default function InvestigationReportPage() {
     void loadReport();
   }, [params.id]);
 
+  async function generateAiDraft() {
+    setGenerating(true);
+    setAiError("");
+    try {
+      const response = await fetch(`/api/investigations/${params.id}/ai-summary`, { method: "POST" });
+      const result = await response.json() as { draft?: string; error?: string };
+      if (!response.ok || !result.draft) {
+        setAiError(result.error || "Não foi possível gerar o rascunho.");
+      } else {
+        setAiDraft(result.draft);
+      }
+    } catch {
+      setAiError("Não foi possível conectar ao serviço de IA.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   if (error) return <main className="profile-loading"><p>{error}</p><button className="secondary-button" onClick={() => router.push(`/investigations/${params.id}`)}>Voltar</button></main>;
   if (!data) return <main className="profile-loading"><LoaderCircle className="spin" size={22} /> Carregando relatório...</main>;
 
-  return <main className="report-page"><div className="report-toolbar"><button className="secondary-button" onClick={() => router.push(`/investigations/${params.id}`)}><ArrowLeft size={16} /> Voltar</button><button className="primary-button" onClick={() => window.print()}><FileDown size={16} /> Exportar PDF</button></div><InvestigationReport data={data} /></main>;
+  return <main className="report-page"><div className="report-toolbar"><button className="secondary-button" onClick={() => router.push(`/investigations/${params.id}`)}><ArrowLeft size={16} /> Voltar</button><button className="secondary-button" onClick={() => void generateAiDraft()} disabled={generating}><Sparkles size={16} /> {generating ? "Analisando..." : "Gerar rascunho com IA"}</button></div>{aiError && <p className="profile-feedback error">{aiError}</p>}{aiDraft && <section className="ai-draft"><div className="ai-draft-heading"><div><p className="eyebrow">ASSISTENTE DE IA · RASCUNHO</p><h2>Análise preliminar</h2></div><Sparkles size={22} /></div><p className="ai-draft-warning">Conteúdo gerado por IA. Revise e valide todas as informações antes de usar ou compartilhar.</p><div className="ai-draft-content">{aiDraft}</div></section>}<InvestigationReport data={data} /></main>;
 }

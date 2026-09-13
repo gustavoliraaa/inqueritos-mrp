@@ -444,6 +444,11 @@ body {
 .report-section { margin-top: 30px; break-inside: avoid; }
 .report-section h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 16px; }
 .report-section p { line-height: 1.6; white-space: pre-wrap; }
+.ai-draft { margin: 0 auto 24px; max-width: 980px; padding: 22px; border: 1px solid #dcd8ff; border-radius: 16px; background: linear-gradient(135deg, #fbfaff, #fff); box-shadow: var(--shadow-sm); }
+.ai-draft-heading { display: flex; align-items: center; justify-content: space-between; color: var(--purple); }
+.ai-draft-heading h2 { margin: 3px 0 0; color: var(--ink); font-size: 18px; }
+.ai-draft-warning { margin: 16px 0; padding: 10px 12px; border-radius: 9px; background: #fff7e6; color: #8b641c; font-size: 12px; }
+.ai-draft-content { white-space: pre-wrap; line-height: 1.65; color: var(--ink); font-size: 13px; }
 .report-table, .report-timeline { display: grid; gap: 8px; }
 .report-row, .report-timeline > div { display: grid; gap: 4px; padding: 11px 13px; border-left: 3px solid var(--purple); background: #fafaff; }
 .report-row span, .report-row small, .report-timeline small { color: var(--muted); font-size: 11px; }
@@ -461,6 +466,7 @@ body {
   .topbar,
   .investigation-actions,
   .report-toolbar,
+  .ai-draft,
   .profile-actions,
   .link-person-form,
   .remove-link {
