@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Car, LoaderCircle, Plus, Search, Shield, X } from "lucide-react";
+import { Car, LoaderCircle, Plus, Search, UserRound, X } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
@@ -10,15 +10,18 @@ type Vehicle = {
   id: string;
   identifier: string;
   name: string;
-  data: { model?: string; color?: string; owner?: string; notes?: string };
+  data: { model?: string; color?: string; owner?: string; person_id?: string; person_name?: string; notes?: string };
   updated_at: string;
 };
 
-const emptyForm = { identifier: "", model: "", color: "", owner: "", notes: "" };
+type PersonOption = { id: string; identifier: string; name: string };
+
+const emptyForm = { identifier: "", model: "", color: "", owner: "", person_id: "", notes: "" };
 
 export default function VehiclesPage() {
   const router = useRouter();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [people, setPeople] = useState<PersonOption[]>([]);
   const [query, setQuery] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editing, setEditing] = useState<Vehicle | null>(null);
@@ -41,6 +44,13 @@ export default function VehiclesPage() {
       .order("updated_at", { ascending: false });
     if (queryError) setError("Não foi possível carregar os veículos.");
     else setVehicles((data || []) as Vehicle[]);
+    const { data: peopleData, error: peopleError } = await supabase
+      .from("people")
+      .select("id, identifier, name")
+      .eq("status", "active")
+      .order("name", { ascending: true });
+    if (peopleError) setError("Não foi possível carregar as pessoas para o cadastro de veículos.");
+    else setPeople(peopleData || []);
     setLoading(false);
   }
 
@@ -60,6 +70,7 @@ export default function VehiclesPage() {
       model: vehicle.data?.model || vehicle.name,
       color: vehicle.data?.color || "",
       owner: vehicle.data?.owner || "",
+      person_id: vehicle.data?.person_id || "",
       notes: vehicle.data?.notes || ""
     });
     setError("");
@@ -82,13 +93,19 @@ export default function VehiclesPage() {
       return;
     }
     const model = form.model.trim();
+    if (!editing && !form.person_id) {
+      setError("Selecione uma pessoa cadastrada como proprietária do veículo.");
+      setSaving(false);
+      return;
+    }
+    const selectedPerson = people.find((person) => person.id === form.person_id);
     const identifier = form.identifier.trim().toUpperCase();
     let operationError: string | null = null;
     if (editing) {
       const { error: updateError } = await supabase.from("entities").update({
         identifier,
         name: model,
-        data: { model, color: form.color.trim(), owner: form.owner.trim(), notes: form.notes.trim() },
+        data: { model, color: form.color.trim(), owner: selectedPerson?.name || form.owner.trim(), person_id: form.person_id || undefined, person_name: selectedPerson?.name, notes: form.notes.trim() },
         updated_at: new Date().toISOString()
       }).eq("id", editing.id);
       operationError = updateError ? "Não foi possível salvar as alterações." : null;
@@ -105,7 +122,7 @@ export default function VehiclesPage() {
         entity_type: "vehicle",
         identifier: generatedIdentifier,
         name: model,
-        data: { model, color: form.color.trim(), owner: form.owner.trim(), notes: form.notes.trim() },
+        data: { model, color: form.color.trim(), owner: selectedPerson?.name, person_id: form.person_id, person_name: selectedPerson?.name, notes: form.notes.trim() },
         created_by: user.id
       });
       operationError = insertError ? "Não foi possível cadastrar o veículo. A placa/identificador pode já existir." : null;
@@ -132,7 +149,7 @@ export default function VehiclesPage() {
           <section className="panel"><div className="investigations-toolbar"><label className="search"><Search size={17} /><input placeholder="Buscar por placa, modelo, cor ou proprietário..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filtered.length} registro(s)</span></div>{error && !showForm && <p className="page-error">{error}</p>}{loading ? <div className="empty-state"><LoaderCircle className="spin" size={22} /> Carregando veículos...</div> : filtered.length === 0 ? <div className="empty-state"><Car size={28} /><strong>Nenhum veículo encontrado</strong><span>Cadastre o primeiro veículo para ampliar a base investigativa.</span></div> : <div className="table-wrap"><table><thead><tr><th>PLACA / ID</th><th>MODELO</th><th>COR</th><th>PROPRIETÁRIO CONHECIDO</th><th>ATUALIZADO</th></tr></thead><tbody>{filtered.map((vehicle) => <tr className="clickable-row" key={vehicle.id} onClick={() => openEdit(vehicle)}><td><strong>{vehicle.identifier}</strong></td><td><strong>{vehicle.data?.model || vehicle.name}</strong></td><td>{vehicle.data?.color || "Não informada"}</td><td>{vehicle.data?.owner || "Desconhecido"}</td><td className="muted">{new Date(vehicle.updated_at).toLocaleDateString("pt-BR")}</td></tr>)}</tbody></table></div>}</section>
         </div>
       </section>
-      {showForm && <div className="modal-backdrop" onClick={() => setShowForm(false)}><form className="modal person-modal" onSubmit={saveVehicle} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowForm(false)}><X size={18} /></button><p className="eyebrow">{editing ? editing.identifier : "NOVO CADASTRO"}</p><h2>{editing ? "Editar veículo" : "Cadastrar veículo"}</h2><label>Placa ou identificador fictício <span className="field-hint">(opcional)</span><input value={form.identifier} placeholder="Ex.: ABC-1234" onChange={(event) => setForm({ ...form, identifier: event.target.value })} /></label><label>Modelo<input required minLength={2} value={form.model} placeholder="Ex.: Sultan RS" onChange={(event) => setForm({ ...form, model: event.target.value })} /></label><label>Cor<input value={form.color} onChange={(event) => setForm({ ...form, color: event.target.value })} /></label><label>Proprietário conhecido<input value={form.owner} onChange={(event) => setForm({ ...form, owner: event.target.value })} /></label><label>Observações<textarea value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>{error && <p className="form-error">{error}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowForm(false)}>Cancelar</button><button className="primary-button" disabled={saving}>{saving ? "Salvando..." : editing ? "Salvar alterações" : "Cadastrar veículo"}</button></div></form></div>}
+      {showForm && <div className="modal-backdrop" onClick={() => setShowForm(false)}><form className="modal person-modal" onSubmit={saveVehicle} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowForm(false)}><X size={18} /></button><p className="eyebrow">{editing ? editing.identifier : "NOVO CADASTRO"}</p><h2>{editing ? "Editar veículo" : "Cadastrar veículo"}</h2><label>Placa ou identificador fictício <span className="field-hint">(opcional)</span><input value={form.identifier} placeholder="Ex.: ABC-1234" onChange={(event) => setForm({ ...form, identifier: event.target.value })} /></label><label>Modelo<input required minLength={2} value={form.model} placeholder="Ex.: Sultan RS" onChange={(event) => setForm({ ...form, model: event.target.value })} /></label><label>Cor<input value={form.color} onChange={(event) => setForm({ ...form, color: event.target.value })} /></label><label className="person-selector-label"><span><UserRound size={14} /> Pessoa proprietária {editing ? "" : <b>*</b>}</span><select required={!editing} value={form.person_id} onChange={(event) => setForm({ ...form, person_id: event.target.value })}><option value="">Selecione uma pessoa cadastrada</option>{people.map((person) => <option key={person.id} value={person.id}>{person.name} · {person.identifier}</option>)}</select>{people.length === 0 && <small>Nenhuma pessoa cadastrada. Cadastre uma pessoa antes de criar o veículo.</small>}</label><label>Observações<textarea value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>{error && <p className="form-error">{error}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowForm(false)}>Cancelar</button><button className="primary-button" disabled={saving || (!editing && people.length === 0)}>{saving ? "Salvando..." : editing ? "Salvar alterações" : "Cadastrar veículo"}</button></div></form></div>}
     </main>
   );
 }

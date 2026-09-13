@@ -215,6 +215,42 @@ body {
   background: var(--purple);
 }
 
+.person-selector-label > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.person-selector-label > span b {
+  color: #d86a76;
+}
+
+.person-selector-label select {
+  width: 100%;
+  height: 43px;
+  margin-top: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: 0;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.person-selector-label select:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(101, 87, 216, .12);
+}
+
+.person-selector-label small {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
 @media (max-width: 520px) {
   .role-selector {
     grid-template-columns: 1fr;
