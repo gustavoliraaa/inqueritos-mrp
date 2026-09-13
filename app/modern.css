@@ -303,6 +303,134 @@ body {
   font-size: 10px;
 }
 
+.investigation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.public-share-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: radial-gradient(circle at 0% 0%, #eeebff 0, transparent 30%), var(--bg);
+}
+
+.public-share-card {
+  width: min(900px, 100%);
+  margin: 0 auto;
+  padding: 36px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.public-share-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.public-share-header h1 {
+  margin: 8px 0 4px;
+}
+
+.public-share-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  padding: 18px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.public-share-card section {
+  margin-top: 28px;
+}
+
+.public-share-card section h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.public-share-list,
+.public-share-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.public-share-list > div,
+.public-share-timeline > div {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.public-share-list span,
+.public-share-list small,
+.public-share-timeline small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.public-share-timeline p {
+  margin: 5px 0 0;
+}
+
+.public-share-card footer {
+  margin-top: 30px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.public-share-message {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  min-height: 240px;
+  text-align: center;
+}
+
+@media print {
+  .sidebar,
+  .topbar,
+  .investigation-actions,
+  .profile-actions,
+  .link-person-form,
+  .remove-link {
+    display: none !important;
+  }
+
+  .shell,
+  .content,
+  .investigation-detail-page {
+    display: block;
+    min-height: auto;
+    padding: 0;
+  }
+
+  .page-heading {
+    margin-bottom: 20px;
+  }
+
+  .panel {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 520px) {
   .role-selector {
     grid-template-columns: 1fr;

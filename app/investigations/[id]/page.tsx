@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, ClipboardList, LoaderCircle, Save, Shield } from "lucide-react";
+import { ArrowLeft, Check, ClipboardList, FileDown, LoaderCircle, Save, Share2, Shield } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../../lib/supabase";
@@ -47,6 +47,7 @@ export default function InvestigationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   async function loadCase() {
     const supabase = getSupabaseBrowserClient();
@@ -193,6 +194,35 @@ export default function InvestigationDetailPage() {
     }
   }
 
+  async function shareInvestigation() {
+    if (!item) return;
+    setSharing(true);
+    setFeedback(null);
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setFeedback({ type: "error", text: "Supabase não está configurado neste ambiente." });
+      setSharing(false);
+      return;
+    }
+    const { data: token, error } = await supabase.rpc("create_investigation_share", { target_investigation_id: item.id });
+    if (error || !token) {
+      setFeedback({ type: "error", text: "Não foi possível gerar o link público. Execute a migração de compartilhamento no Supabase." });
+    } else {
+      const url = `${window.location.origin}/public/investigations/${token}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        setFeedback({ type: "success", text: "Link público criado e copiado para a área de transferência." });
+      } catch {
+        setFeedback({ type: "success", text: `Link público criado: ${url}` });
+      }
+    }
+    setSharing(false);
+  }
+
+  function exportPdf() {
+    window.print();
+  }
+
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" size={22} /> Carregando inquérito...</main>;
   if (!item) return <main className="profile-loading"><p>{feedback?.text || "Inquérito indisponível."}</p><button className="secondary-button" onClick={() => router.push("/investigations")}>Voltar</button></main>;
 
@@ -200,7 +230,7 @@ export default function InvestigationDetailPage() {
     <main className="shell">
       <AppSidebar active="Inquéritos" />
       <section className="content"><header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><button className="breadcrumb-link" onClick={() => router.push("/investigations")}>Inquéritos</button><span>/</span><strong>{item.identifier}</strong></div></header>
-        <div className="page investigation-detail-page"><div className="page-heading"><div><p className="eyebrow">{item.identifier}</p><h1>{item.title}</h1><p className="muted">Aberto em {new Date(item.opened_at).toLocaleString("pt-BR")}</p></div><button className="secondary-button" onClick={() => router.push("/investigations")}><ArrowLeft size={16} /> Voltar</button></div>
+        <div className="page investigation-detail-page"><div className="page-heading"><div><p className="eyebrow">{item.identifier}</p><h1>{item.title}</h1><p className="muted">Aberto em {new Date(item.opened_at).toLocaleString("pt-BR")}</p></div><div className="investigation-actions"><button className="secondary-button" onClick={() => void shareInvestigation()} disabled={sharing}><Share2 size={16} /> {sharing ? "Gerando..." : "Compartilhar link"}</button><button className="secondary-button" onClick={exportPdf}><FileDown size={16} /> Exportar PDF</button><button className="secondary-button" onClick={() => router.push("/investigations")}><ArrowLeft size={16} /> Voltar</button></div></div>
           <div className="detail-grid"><form className="panel detail-form" onSubmit={saveCase}><div className="panel-heading"><div><h2>Dados do inquérito</h2><p>Atualize o andamento e as informações principais.</p></div></div><div className="detail-fields"><label>Título ou objeto<input required minLength={3} value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label><label>Unidade responsável<input required value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label><label>Descrição<textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label><div className="form-row"><label>Status<select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>{Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label><label>Prioridade<select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value })}>{Object.entries(priorityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label></div><label>Classificação de acesso<select value={form.access_level} onChange={(event) => setForm({ ...form, access_level: event.target.value })}><option value="normal">Normal</option><option value="restrito">Restrito</option><option value="sigiloso">Sigiloso</option><option value="alto_sigilo">Alto sigilo</option></select></label></div>{feedback && <p className={`profile-feedback ${feedback.type}`}>{feedback.type === "success" && <Check size={15} />}{feedback.text}</p>}<div className="profile-actions"><button className="primary-button" disabled={saving}>{saving ? <><LoaderCircle className="spin" size={16} /> Salvando...</> : <><Save size={16} /> Salvar alterações</>}</button></div></form>
             <section className="panel timeline-panel"><div className="panel-heading"><div><h2>Linha do tempo</h2><p>Histórico cronológico do inquérito.</p></div></div><div className="detail-timeline">{timeline.length === 0 ? <div className="empty-state"><span>Nenhum evento registrado.</span></div> : timeline.map((event) => <div className="timeline-event" key={event.id}><span className="activity-dot purple-dot" /><div><strong>{event.title}</strong><p>{event.description}</p><small>{new Date(event.created_at).toLocaleString("pt-BR")}</small></div></div>)}</div></section>
           </div>
