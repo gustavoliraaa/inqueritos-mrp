@@ -2,6 +2,10 @@
 
 Sistema fictício de investigação e inteligência para GTA FiveM MRP. O projeto foi estruturado para **GitHub + Vercel + Supabase**.
 
+A interface web usa **Tamagui** como fundação de tema, tokens e provider global,
+com CSS responsivo compartilhado para manter a experiência consistente entre
+dashboard, módulos, autenticação e configurações.
+
 ## Rodar localmente
 
 1. Instale Node.js 20 ou superior.

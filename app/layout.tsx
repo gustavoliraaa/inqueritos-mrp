@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./modern.css";
+import AppTamaguiProvider from "../components/tamagui-provider";
 
 export const metadata: Metadata = {
   title: "MRP Intelligence",
@@ -9,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body><AppTamaguiProvider>{children}</AppTamaguiProvider></body>
     </html>
   );
 }
