@@ -58,7 +58,7 @@ export default function IntelligencePage() {
     }
 
     const nextItems: IntelligenceItem[] = [
-      ...(investigationsRes.data || []).map((item) => ({
+      ...(investigationsRes.data || []).map((item): IntelligenceItem => ({
         id: item.id,
         category: "Inquérito",
         identifier: item.identifier,
@@ -67,7 +67,7 @@ export default function IntelligencePage() {
         status: item.status,
         updated_at: item.updated_at
       })),
-      ...(peopleRes.data || []).map((item) => ({
+      ...(peopleRes.data || []).map((item): IntelligenceItem => ({
         id: item.id,
         category: "Pessoa",
         identifier: item.identifier,
@@ -75,7 +75,7 @@ export default function IntelligencePage() {
         subtitle: item.status === "active" ? "Cadastro ativo" : "Cadastro inativo",
         updated_at: item.updated_at
       })),
-      ...(vehiclesRes.data || []).map((item) => ({
+      ...(vehiclesRes.data || []).map((item): IntelligenceItem => ({
         id: item.id,
         category: "Veículo",
         identifier: item.identifier,
@@ -84,7 +84,7 @@ export default function IntelligencePage() {
         value: item.data?.owner || "",
         updated_at: item.updated_at
       })),
-      ...(organizationsRes.data || []).map((item) => ({
+      ...(organizationsRes.data || []).map((item): IntelligenceItem => ({
         id: item.id,
         category: "Organização",
         identifier: item.identifier,
@@ -93,7 +93,7 @@ export default function IntelligencePage() {
         value: item.data?.members || "",
         updated_at: item.updated_at
       })),
-      ...(locationsRes.data || []).map((item) => ({
+      ...(locationsRes.data || []).map((item): IntelligenceItem => ({
         id: item.id,
         category: "Local",
         identifier: item.identifier,
@@ -102,7 +102,7 @@ export default function IntelligencePage() {
         value: item.data?.address || "",
         updated_at: item.updated_at
       })),
-      ...(phonesRes.data || []).map((item) => ({
+      ...(phonesRes.data || []).map((item): IntelligenceItem => ({
         id: item.id,
         category: "Telefone",
         identifier: item.identifier,
@@ -111,7 +111,7 @@ export default function IntelligencePage() {
         value: item.data?.number || "",
         updated_at: item.updated_at
       })),
-      ...(evidencesRes.data || []).map((item) => ({
+      ...(evidencesRes.data || []).map((item): IntelligenceItem => ({
         id: item.id,
         category: "Evidência",
         identifier: item.identifier,
