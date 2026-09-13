@@ -11,7 +11,7 @@
 }
 
 body {
-  background: radial-gradient(circle at 0% 0%, #eeebff 0, transparent 30%), var(--bg);
+  background: radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--brand-primary) 14%, transparent) 0, transparent 30%), var(--brand-background);
 }
 
 .shell {
@@ -87,6 +87,12 @@ body {
   border-radius: 10px;
   transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
+
+.primary-button { background: var(--brand-primary); }
+.brand-mark { background: var(--brand-primary); }
+.brand-logo { width: 38px; height: 38px; object-fit: contain; border-radius: 10px; flex: none; }
+.nav-item.active { background: color-mix(in srgb, var(--brand-primary) 12%, white); color: var(--brand-primary); }
+.text-button { color: var(--brand-primary); }
 
 .primary-button:hover {
   transform: translateY(-1px);

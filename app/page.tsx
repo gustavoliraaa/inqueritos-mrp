@@ -26,6 +26,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "../lib/supabase";
+import { useSystemIdentity } from "../components/system-identity-provider";
 
 type CaseStatus = "Em investigação" | "Aguardando diligência" | "Em análise" | "Concluído";
 
@@ -65,6 +66,7 @@ function getInitials(name: string) {
 }
 
 export default function HomePage() {
+  const identity = useSystemIdentity();
   const router = useRouter();
   const [active, setActive] = useState("Central");
   const [showModal, setShowModal] = useState(false);
@@ -159,8 +161,8 @@ export default function HomePage() {
     <main className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark"><Shield size={21} /></div>
-          <div><strong>MRP</strong><span>INTELLIGENCE</span></div>
+          {identity.logo_url ? <img className="brand-logo" src={identity.logo_url} alt="" /> : <div className="brand-mark" style={{ background: identity.primary_color }}><Shield size={21} /></div>}
+          <div><strong>{identity.system_name}</strong><span>{identity.slug}</span></div>
         </div>
         <button className="workspace-switcher" onClick={() => setShowWorkspaceMenu((visible) => !visible)} aria-expanded={showWorkspaceMenu}>
           <div className="avatar avatar-small">{getInitials(profile.name)}</div>

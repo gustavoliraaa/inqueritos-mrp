@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase";
+import { useSystemIdentity } from "../../../components/system-identity-provider";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const identity = useSystemIdentity();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,7 +37,7 @@ export default function LoginPage() {
   return (
     <main className="auth-shell">
       <section className="auth-card">
-        <div className="brand auth-brand"><div className="brand-mark">◆</div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
+        <div className="brand auth-brand">{identity.logo_url ? <img className="brand-logo" src={identity.logo_url} alt="" /> : <div className="brand-mark" style={{ background: identity.primary_color }}>◆</div>}<div><strong>{identity.system_name}</strong><span>{identity.slug}</span></div></div>
         <p className="eyebrow">ACESSO RESTRITO</p>
         <h1>Entrar no sistema</h1>
         <p className="muted">Use suas credenciais para acessar a central de investigação.</p>

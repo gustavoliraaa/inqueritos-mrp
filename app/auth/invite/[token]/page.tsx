@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSystemIdentity } from "../../../../components/system-identity-provider";
 
 const roleLabels: Record<string, string> = {
   agente: "Agente",
@@ -13,6 +14,7 @@ const roleLabels: Record<string, string> = {
 
 export default function PublicInvitePage() {
   const params = useParams<{ token: string }>();
+  const identity = useSystemIdentity();
   const [form, setForm] = useState({ full_name: "", email: "", password: "", unit: "" });
   const [inviteRole, setInviteRole] = useState("");
   const [remainingUses, setRemainingUses] = useState<number | null>(null);
@@ -49,7 +51,7 @@ export default function PublicInvitePage() {
   return (
     <main className="auth-shell">
       <section className="auth-card">
-        <div className="brand auth-brand"><div className="brand-mark">◆</div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
+        <div className="brand auth-brand">{identity.logo_url ? <img className="brand-logo" src={identity.logo_url} alt="" /> : <div className="brand-mark" style={{ background: identity.primary_color }}>◆</div>}<div><strong>{identity.system_name}</strong><span>{identity.slug}</span></div></div>
         <p className="eyebrow">CONVITE DE ACESSO</p><h1>Solicitar cadastro</h1><p className="muted">Preencha seus dados. O acesso será liberado por um administrador após a análise.</p>
         <form onSubmit={submit}>
           <label>Nome completo<input required minLength={2} value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label>

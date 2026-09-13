@@ -3,8 +3,10 @@
 import { LogOut, LoaderCircle, Shield } from "lucide-react";
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import { useSystemIdentity } from "../../components/system-identity-provider";
 
 export default function AccessPendingPage() {
+  const identity = useSystemIdentity();
   const [loading, setLoading] = useState(false);
 
   async function logout() {
@@ -17,7 +19,7 @@ export default function AccessPendingPage() {
   return (
     <main className="auth-shell">
       <section className="auth-card">
-        <div className="brand auth-brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
+        <div className="brand auth-brand">{identity.logo_url ? <img className="brand-logo" src={identity.logo_url} alt="" /> : <div className="brand-mark" style={{ background: identity.primary_color }}><Shield size={21} /></div>}<div><strong>{identity.system_name}</strong><span>{identity.slug}</span></div></div>
         <p className="eyebrow">ACESSO PENDENTE</p>
         <h1>Aguardando liberação</h1>
         <p className="muted">Seu cadastro foi recebido, mas um administrador ainda precisa liberar o acesso ao sistema.</p>
