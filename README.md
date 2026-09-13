@@ -62,6 +62,11 @@ Para habilitar identificadores automáticos de evidências, execute
 no SQL Editor. O módulo está disponível em `/evidences` e permite vincular cada
 registro a um inquérito.
 
+Para habilitar anexos de evidências, execute
+[`supabase/evidence-storage.sql`](./supabase/evidence-storage.sql) uma vez no
+SQL Editor. O bucket `evidence-files` é privado; a aplicação gera links
+temporários para usuários autenticados.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
