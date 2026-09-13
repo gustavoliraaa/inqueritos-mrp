@@ -74,6 +74,11 @@ configurar as ações de visualizar, criar, editar e excluir para os cargos padr
 O script pode ser executado novamente com segurança caso a tabela ou as políticas
 já existam.
 
+Para habilitar convites administrativos e a liberação manual de acesso, execute
+[`supabase/user-access.sql`](./supabase/user-access.sql) e configure
+`SUPABASE_SERVICE_ROLE_KEY` somente nas variáveis de ambiente da Vercel/servidor.
+Nunca exponha essa chave como variável `NEXT_PUBLIC_*`.
+
 ## Publicar
 
 - Suba o repositório no GitHub.

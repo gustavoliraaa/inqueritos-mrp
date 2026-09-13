@@ -26,9 +26,17 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
+  const isAccessBlockedRoute = user && !isAuthRoute && !request.nextUrl.pathname.startsWith("/access-pending");
 
   if (!user && !isAuthRoute) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
+  }
+
+  if (isAccessBlockedRoute) {
+    const { data: profile } = await supabase.from("profiles").select("access_enabled").eq("id", user.id).maybeSingle();
+    if (profile && profile.access_enabled === false) {
+      return NextResponse.redirect(new URL("/access-pending", request.url));
+    }
   }
 
   if (user && isAuthRoute && !request.nextUrl.pathname.startsWith("/auth/callback")) {
