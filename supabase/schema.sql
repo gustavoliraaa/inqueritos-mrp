@@ -7,6 +7,8 @@ create type public.priority_level as enum ('baixa', 'media', 'alta');
 
 create sequence if not exists public.investigation_identifier_seq;
 
+create sequence if not exists public.people_identifier_seq;
+
 create or replace function public.next_investigation_identifier()
 returns text
 language sql
@@ -14,6 +16,14 @@ volatile
 as $$
   select 'IP-' || extract(year from now())::text || '-' ||
     lpad(nextval('public.investigation_identifier_seq')::text, 6, '0');
+$$;
+
+create or replace function public.next_person_identifier()
+returns text
+language sql
+volatile
+as $$
+  select 'CID-' || lpad(nextval('public.people_identifier_seq')::text, 6, '0');
 $$;
 
 create table public.profiles (

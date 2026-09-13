@@ -36,6 +36,10 @@ Para habilitar a numeração automática dos inquéritos, execute
 uma vez no SQL Editor. Depois disso, a página `/investigations` permite listar e
 criar inquéritos persistidos no Supabase.
 
+Para habilitar a numeração automática de pessoas, execute
+[`supabase/people-numbering.sql`](./supabase/people-numbering.sql) uma vez no
+SQL Editor. A página `/people` permite cadastrar e editar a base central.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
