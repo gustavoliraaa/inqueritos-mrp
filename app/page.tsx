@@ -21,6 +21,7 @@ import {
   Users,
   X
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "../lib/supabase";
 
@@ -90,6 +91,7 @@ function getInitials(name: string) {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const [active, setActive] = useState("Central");
   const [showModal, setShowModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -176,7 +178,7 @@ export default function HomePage() {
               {showUserMenu && <div className="user-menu">
                 <div className="user-menu-header"><div className="avatar">{getInitials(profile.name)}</div><div><strong>{profile.name}</strong><span>{profile.email || "Perfil conectado"}</span></div></div>
                 <div className="user-menu-role"><UserRound size={15} /> <span>Perfil: <strong>{profile.role}</strong></span></div>
-                <button className="user-menu-item" onClick={() => setActive("Meu perfil")}><UserRound size={16} /> Meu perfil</button>
+                <button className="user-menu-item" onClick={() => router.push("/profile")}><UserRound size={16} /> Meu perfil</button>
                 <button className="user-menu-item logout-item" onClick={() => void handleLogout()}><LogOut size={16} /> Sair do sistema</button>
               </div>}
             </div>
