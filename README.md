@@ -44,6 +44,9 @@ Para habilitar identificadores automáticos de veículos, execute
 [`supabase/vehicles-numbering.sql`](./supabase/vehicles-numbering.sql) uma vez
 no SQL Editor. O módulo está disponível em `/vehicles`.
 
+O cadastro de organizações está disponível em `/organizations` e utiliza a
+tabela central `entities` com `entity_type = organization`.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
