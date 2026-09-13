@@ -27,6 +27,10 @@ Para promover o primeiro usuário a administrador, execute uma vez o arquivo
 SQL Editor do Supabase. O último `select` deve retornar o usuário com `role`
 igual a `administrador`.
 
+Se um usuário aparecer em **Authentication → Users**, mas não aparecer em
+`public.profiles`, execute [`supabase/fix-profiles-trigger.sql`](./supabase/fix-profiles-trigger.sql).
+Essa migração corrige o trigger e cria os perfis que ficaram faltando.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
