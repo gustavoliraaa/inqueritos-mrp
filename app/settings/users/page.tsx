@@ -32,6 +32,35 @@ const roleLabels: Record<string, string> = {
   administrador: "Administrador"
 };
 
+const roleOptions = [
+  { value: "agente", label: "Agente", description: "Acesso operacional básico", tone: "blue" },
+  { value: "investigador", label: "Investigador", description: "Investigações e diligências", tone: "purple" },
+  { value: "delegado", label: "Delegado", description: "Gestão completa de casos", tone: "amber" },
+  { value: "corregedoria", label: "Corregedoria", description: "Revisão e auditoria", tone: "green" },
+  { value: "administrador", label: "Administrador", description: "Controle total do sistema", tone: "red" }
+] as const;
+
+function RoleSelector({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <div className="role-selector" role="radiogroup" aria-label="Cargo">
+      {roleOptions.map((option) => (
+        <button
+          className={`role-option ${option.tone} ${value === option.value ? "selected" : ""}`}
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          onClick={() => onChange(option.value)}
+        >
+          <span className="role-option-icon">{option.label.slice(0, 1)}</span>
+          <span className="role-option-copy"><strong>{option.label}</strong><small>{option.description}</small></span>
+          <span className="role-option-check" aria-hidden="true">{value === option.value ? "✓" : ""}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "US";
 }
@@ -253,8 +282,8 @@ export default function UserManagementPage() {
         </div>
       </section>
 
-      {editingUser && <div className="modal-backdrop" onClick={() => setEditingUser(null)}><form className="modal" onSubmit={saveUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setEditingUser(null)}><X size={18} /></button><p className="eyebrow">GESTÃO DE USUÁRIOS</p><h2>Editar usuário</h2><label>Nome completo<input required minLength={2} value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label><label>Unidade operacional<input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label><label>Cargo<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label>{feedback && <p className="form-error">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setEditingUser(null)}>Cancelar</button><button className="primary-button" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</button></div></form></div>}
-      {showInvite && <div className="modal-backdrop" onClick={() => setShowInvite(false)}><form className="modal" onSubmit={inviteUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowInvite(false)}><X size={18} /></button><p className="eyebrow">URL PÚBLICA</p><h2>Gerar convite</h2><p className="modal-help">Defina o cargo e quantas vezes o link poderá ser utilizado. O usuário preencherá os demais dados.</p><label>Cargo pré-definido<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value)}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label><label>Quantidade de usos<input type="number" min="1" max="1000" required value={inviteMaxUses} onChange={(event) => setInviteMaxUses(event.target.value)} /></label>{inviteUrl && <label>URL para enviar<div className="input-with-action"><input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /><button type="button" className="secondary-button" onClick={() => void navigator.clipboard.writeText(inviteUrl)}>Copiar</button></div></label>}{feedback && <p className="form-success">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowInvite(false)}>Fechar</button><button className="primary-button" disabled={inviteSaving}>{inviteSaving ? "Gerando..." : "Gerar URL pública"}</button></div></form></div>}
+      {editingUser && <div className="modal-backdrop" onClick={() => setEditingUser(null)}><form className="modal" onSubmit={saveUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setEditingUser(null)}><X size={18} /></button><p className="eyebrow">GESTÃO DE USUÁRIOS</p><h2>Editar usuário</h2><label>Nome completo<input required minLength={2} value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label><label>Unidade operacional<input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label><fieldset className="role-field"><legend>Cargo</legend><RoleSelector value={form.role} onChange={(role) => setForm({ ...form, role })} /></fieldset>{feedback && <p className="form-error">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setEditingUser(null)}>Cancelar</button><button className="primary-button" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</button></div></form></div>}
+      {showInvite && <div className="modal invite-modal" onClick={() => setShowInvite(false)}><form onSubmit={inviteUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowInvite(false)}><X size={18} /></button><p className="eyebrow">URL PÚBLICA</p><h2>Gerar convite</h2><p className="modal-help">Escolha o perfil de acesso e defina quantas pessoas poderão usar este link.</p><fieldset className="role-field"><legend>Cargo pré-definido</legend><RoleSelector value={inviteRole} onChange={setInviteRole} /></fieldset><label>Quantidade de usos<input type="number" min="1" max="1000" required value={inviteMaxUses} onChange={(event) => setInviteMaxUses(event.target.value)} /></label>{inviteUrl && <label>URL para enviar<div className="input-with-action"><input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /><button type="button" className="secondary-button" onClick={() => void navigator.clipboard.writeText(inviteUrl)}>Copiar</button></div></label>}{feedback && <p className="form-success">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowInvite(false)}>Fechar</button><button className="primary-button" disabled={inviteSaving}>{inviteSaving ? "Gerando..." : "Gerar URL pública"}</button></div></form></div>}
     </main>
   );
 }

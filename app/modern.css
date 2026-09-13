@@ -107,6 +107,120 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
+.invite-modal {
+  position: relative;
+  width: min(560px, calc(100% - 32px));
+  padding: 28px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+}
+
+.invite-modal form {
+  position: relative;
+}
+
+.role-field {
+  border: 0;
+  padding: 0;
+  margin: 22px 0 0;
+}
+
+.role-field legend {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 9px;
+}
+
+.role-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.role-option {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.role-option:hover,
+.role-option.selected {
+  border-color: var(--purple);
+  background: #faf9ff;
+  box-shadow: 0 5px 14px rgba(101, 87, 216, .12);
+  transform: translateY(-1px);
+}
+
+.role-option-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 9px;
+  color: #fff;
+  background: var(--purple);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.role-option.blue .role-option-icon { background: #4294cc; }
+.role-option.purple .role-option-icon { background: #705bd8; }
+.role-option.amber .role-option-icon { background: #d39735; }
+.role-option.green .role-option-icon { background: #42a47a; }
+.role-option.red .role-option-icon { background: #d86a76; }
+
+.role-option-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.role-option-copy strong {
+  font-size: 12px;
+}
+
+.role-option-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-option-check {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border: 1px solid #d9dce6;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+}
+
+.role-option.selected .role-option-check {
+  border-color: var(--purple);
+  background: var(--purple);
+}
+
+@media (max-width: 520px) {
+  .role-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 680px) {
   .topbar {
     height: 64px;
