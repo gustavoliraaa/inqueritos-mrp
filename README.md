@@ -70,7 +70,7 @@ temporários para usuários autenticados.
 Para habilitar as liberações de funcionalidades por cargo, execute
 [`supabase/role-permissions.sql`](./supabase/role-permissions.sql) uma vez no
 SQL Editor. A página `/settings/users`, disponível para administradores, permite
-configurar somente as ações de criar, editar e excluir para os cargos padrão.
+configurar as ações de visualizar, criar, editar e excluir para os cargos padrão.
 
 ## Publicar
 

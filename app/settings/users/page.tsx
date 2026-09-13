@@ -15,6 +15,7 @@ type ManagedUser = {
 
 type RolePermission = {
   role: string;
+  can_view: boolean;
   can_create: boolean;
   can_edit: boolean;
   can_delete: boolean;
@@ -78,7 +79,7 @@ export default function UserManagementPage() {
       }
       const { data: rolePermissions, error: permissionsError } = await client
         .from("role_permissions")
-        .select("role, can_create, can_edit, can_delete, updated_at")
+        .select("role, can_view, can_create, can_edit, can_delete, updated_at")
         .order("role", { ascending: true });
       if (permissionsError) {
         setFeedback("Execute a migração de permissões no Supabase para habilitar as liberações por cargo.");
@@ -156,13 +157,14 @@ export default function UserManagementPage() {
     const updatedAt = new Date().toISOString();
     const updates = permissions.map((permission) => ({
       role: permission.role,
+      can_view: permission.can_view,
       can_create: permission.can_create,
       can_edit: permission.can_edit,
       can_delete: permission.can_delete,
       updated_at: updatedAt,
       updated_by: user.id
     }));
-    const { data, error } = await supabase.from("role_permissions").upsert(updates, { onConflict: "role" }).select("role, can_create, can_edit, can_delete, updated_at");
+    const { data, error } = await supabase.from("role_permissions").upsert(updates, { onConflict: "role" }).select("role, can_view, can_create, can_edit, can_delete, updated_at");
     if (error) {
       setFeedback("Não foi possível salvar as liberações. Verifique a migração e suas permissões.");
     } else {
@@ -173,7 +175,7 @@ export default function UserManagementPage() {
   }
 
   const filteredUsers = users.filter((user) => `${user.full_name} ${user.unit || ""} ${roleLabels[user.role] || user.role}`.toLowerCase().includes(query.toLowerCase()));
-  const updatePermission = (role: string, field: "can_create" | "can_edit" | "can_delete") => {
+  const updatePermission = (role: string, field: "can_view" | "can_create" | "can_edit" | "can_delete") => {
     setPermissions((current) => current.map((permission) => permission.role === role ? { ...permission, [field]: !permission[field] } : permission));
   };
 
@@ -208,8 +210,8 @@ export default function UserManagementPage() {
             <p className="settings-admin-help">A criação, remoção e redefinição de senha das contas continuam sendo administradas pelo Supabase Auth.</p>
           </section>
           <section className="panel user-management-panel permissions-panel">
-            <div className="panel-heading"><div><h2>Liberações por cargo</h2><p>Defina somente as ações de criar, editar e excluir. Os cargos padrão não podem ser alterados.</p></div><span className="role-pill"><Shield size={13} /> Acesso</span></div>
-            {permissions.length === 0 ? <div className="empty-state"><Shield size={25} /><strong>Nenhuma configuração de permissão carregada</strong><span>Execute o arquivo supabase/role-permissions.sql no projeto Supabase.</span></div> : <><div className="table-wrap"><table><thead><tr><th>CARGO</th><th>CRIAR</th><th>EDITAR</th><th>EXCLUIR</th></tr></thead><tbody>{permissions.map((permission) => <tr key={permission.role}><td><strong>{roleLabels[permission.role] || permission.role}</strong><small>{permission.role}</small></td><td><label className="permission-check"><input type="checkbox" checked={permission.can_create} onChange={() => updatePermission(permission.role, "can_create")} /><Check size={14} /></label></td><td><label className="permission-check"><input type="checkbox" checked={permission.can_edit} onChange={() => updatePermission(permission.role, "can_edit")} /><Check size={14} /></label></td><td><label className="permission-check"><input type="checkbox" checked={permission.can_delete} onChange={() => updatePermission(permission.role, "can_delete")} /><Check size={14} /></label></td></tr>)}</tbody></table></div><div className="profile-actions"><button className="primary-button" type="button" disabled={permissionsSaving} onClick={() => void savePermissions()}>{permissionsSaving ? "Salvando..." : "Salvar liberações"}</button></div></>}
+            <div className="panel-heading"><div><h2>Liberações por cargo</h2><p>Defina as ações de visualizar, criar, editar e excluir. Os cargos padrão não podem ser alterados.</p></div><span className="role-pill"><Shield size={13} /> Acesso</span></div>
+            {permissions.length === 0 ? <div className="empty-state"><Shield size={25} /><strong>Nenhuma configuração de permissão carregada</strong><span>Execute o arquivo supabase/role-permissions.sql no projeto Supabase.</span></div> : <><div className="table-wrap"><table><thead><tr><th>CARGO</th><th>VISUALIZAR</th><th>CRIAR</th><th>EDITAR</th><th>EXCLUIR</th></tr></thead><tbody>{permissions.map((permission) => <tr key={permission.role}><td><strong>{roleLabels[permission.role] || permission.role}</strong><small>{permission.role}</small></td><td><label className="permission-check"><input type="checkbox" checked={permission.can_view} onChange={() => updatePermission(permission.role, "can_view")} /><Check size={14} /></label></td><td><label className="permission-check"><input type="checkbox" checked={permission.can_create} onChange={() => updatePermission(permission.role, "can_create")} /><Check size={14} /></label></td><td><label className="permission-check"><input type="checkbox" checked={permission.can_edit} onChange={() => updatePermission(permission.role, "can_edit")} /><Check size={14} /></label></td><td><label className="permission-check"><input type="checkbox" checked={permission.can_delete} onChange={() => updatePermission(permission.role, "can_delete")} /><Check size={14} /></label></td></tr>)}</tbody></table></div><div className="profile-actions"><button className="primary-button" type="button" disabled={permissionsSaving} onClick={() => void savePermissions()}>{permissionsSaving ? "Salvando..." : "Salvar liberações"}</button></div></>}
           </section>
         </div>
       </section>
