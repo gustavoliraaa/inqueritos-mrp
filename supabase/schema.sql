@@ -15,6 +15,22 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name)
+  values (new.id, coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)));
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
 create table public.investigations (
   id uuid primary key default gen_random_uuid(),
   identifier text not null unique,
@@ -159,6 +175,7 @@ alter table public.audit_logs enable row level security;
 alter table public.timeline_events enable row level security;
 
 create policy "authenticated users can read profiles" on public.profiles for select to authenticated using (true);
+create policy "users can update own profile" on public.profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 create policy "authenticated users can read investigations" on public.investigations for select to authenticated using (true);
 create policy "authenticated users can create investigations" on public.investigations for insert to authenticated with check (created_by = auth.uid());
 create policy "authenticated users can update investigations" on public.investigations for update to authenticated using (true) with check (true);

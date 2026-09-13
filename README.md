@@ -10,6 +10,18 @@ Sistema fictício de investigação e inteligência para GTA FiveM MRP. O projet
 4. No Supabase, execute [`supabase/schema.sql`](./supabase/schema.sql) no SQL Editor.
 5. Execute `npm run dev` e abra `http://localhost:3000`.
 
+## Autenticação
+
+O cadastro e login usam o Supabase Auth. O banco cria automaticamente um registro
+em `public.profiles` para cada novo usuário. Em um projeto Supabase já existente,
+execute novamente o arquivo [`supabase/schema.sql`](./supabase/schema.sql) para
+aplicar o trigger de criação de perfil e as políticas atualizadas.
+
+No painel do Supabase, configure em **Authentication → URL Configuration**:
+
+- **Site URL**: a URL da Vercel em produção.
+- **Redirect URLs**: `https://seu-dominio.vercel.app/auth/callback` e `http://localhost:3000/auth/callback`.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
