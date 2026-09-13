@@ -10,6 +10,7 @@ import {
   Info,
   LoaderCircle,
   LogOut,
+  Palette,
   Save,
   Settings as SettingsIcon,
   Shield,
@@ -152,6 +153,7 @@ export default function SettingsPage() {
           </form>
 
           <div className="settings-grid">
+            {profile.role === "administrador" && <section className="panel settings-info-card settings-user-management-link"><div className="settings-info-icon"><Palette size={19} /></div><div><h2>Identidade do sistema</h2><p>Edite logo, nome, cores, slug e informações de compartilhamento.</p><button className="text-button" type="button" onClick={() => router.push("/settings/identity")}>Configurar identidade <ChevronRight size={14} /></button></div></section>}
             <section className="panel settings-info-card"><div className="settings-info-icon"><Shield size={19} /></div><div><h2>Segurança e acesso</h2><p>Sua sessão é protegida pelo Supabase Auth. O nível de acesso atual é <strong>{profile.role.replaceAll("_", " ")}</strong>.</p><button className="text-button" type="button" onClick={() => router.push("/audit")}>Consultar auditoria <ChevronRight size={14} /></button></div></section>
             <section className="panel settings-info-card"><div className="settings-info-icon"><Info size={19} /></div><div><h2>Sobre o sistema</h2><p>MRP Intelligence · Ambiente operacional fictício para uso em roleplay.</p><button className="text-button" type="button" onClick={() => router.push("/profile")}>Ver dados do perfil <ChevronRight size={14} /></button></div></section>
           </div>

@@ -22,6 +22,11 @@ cria uma análise preliminar baseada exclusivamente nos dados do inquérito. O
 texto é um rascunho e precisa de revisão humana antes de ser utilizado ou
 compartilhado.
 
+Para habilitar a identidade visual configurável, execute
+[`supabase/system-identity.sql`](./supabase/system-identity.sql) no SQL Editor.
+Administradores poderão editar o nome, logo, cores, slug, nome do navegador e
+metadados de compartilhamento em `/settings/identity`.
+
 ## Autenticação
 
 O cadastro e login usam o Supabase Auth. O banco cria automaticamente um registro
