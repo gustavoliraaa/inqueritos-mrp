@@ -45,15 +45,16 @@ export default function SettingsPage() {
       setLoading(false);
       return;
     }
+    const client = supabase;
 
     async function loadSettings() {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await client.auth.getUser();
       if (userError || !user) {
         router.replace("/auth/login");
         return;
       }
 
-      const { data, error } = await supabase.from("profiles").select("full_name, unit, role").eq("id", user.id).maybeSingle();
+      const { data, error } = await client.from("profiles").select("full_name, unit, role").eq("id", user.id).maybeSingle();
       if (error) {
         setFeedback({ type: "error", text: "Não foi possível carregar as configurações." });
       } else {
