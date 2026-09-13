@@ -87,46 +87,6 @@ export default function InvestigationDetailPage() {
       return;
     }
 
-    async function linkPerson(event: FormEvent<HTMLFormElement>) {
-      event.preventDefault();
-      if (!personForm.personId) return;
-      setLinkingPerson(true);
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase || !item) {
-        setFeedback({ type: "error", text: "Não foi possível vincular a pessoa." });
-        setLinkingPerson(false);
-        return;
-      }
-      const client = supabase;
-      const { data: { user } } = await client.auth.getUser();
-      if (!user) {
-        router.replace("/auth/login");
-        return;
-      }
-      const { error } = await client.from("investigation_people").insert({
-        investigation_id: item.id,
-        person_id: personForm.personId,
-        role: personForm.role,
-        notes: personForm.notes.trim() || null,
-        created_by: user.id
-      });
-      if (error) {
-        setFeedback({ type: "error", text: error.code === "23505" ? "Essa pessoa já possui esse papel neste inquérito." : "Não foi possível criar o vínculo." });
-      } else {
-        setPersonForm({ personId: "", role: "investigado", notes: "" });
-        await loadCase();
-        setFeedback({ type: "success", text: "Pessoa vinculada ao inquérito." });
-      }
-      setLinkingPerson(false);
-    }
-
-    async function unlinkPerson(personId: string, role: string) {
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase || !item) return;
-      const { error } = await supabase.from("investigation_people").delete().eq("investigation_id", item.id).eq("person_id", personId).eq("role", role);
-      if (error) setFeedback({ type: "error", text: "Não foi possível remover o vínculo." });
-      else await loadCase();
-    }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       router.replace("/auth/login");
@@ -159,6 +119,46 @@ export default function InvestigationDetailPage() {
       setFeedback({ type: "success", text: "Alterações salvas com sucesso." });
     }
     setSaving(false);
+  }
+
+  async function linkPerson(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!personForm.personId) return;
+    setLinkingPerson(true);
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !item) {
+      setFeedback({ type: "error", text: "Não foi possível vincular a pessoa." });
+      setLinkingPerson(false);
+      return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+    const { error } = await supabase.from("investigation_people").insert({
+      investigation_id: item.id,
+      person_id: personForm.personId,
+      role: personForm.role,
+      notes: personForm.notes.trim() || null,
+      created_by: user.id
+    });
+    if (error) {
+      setFeedback({ type: "error", text: error.code === "23505" ? "Essa pessoa já possui esse papel neste inquérito." : "Não foi possível criar o vínculo." });
+    } else {
+      setPersonForm({ personId: "", role: "investigado", notes: "" });
+      await loadCase();
+      setFeedback({ type: "success", text: "Pessoa vinculada ao inquérito." });
+    }
+    setLinkingPerson(false);
+  }
+
+  async function unlinkPerson(personId: string, role: string) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !item) return;
+    const { error } = await supabase.from("investigation_people").delete().eq("investigation_id", item.id).eq("person_id", personId).eq("role", role);
+    if (error) setFeedback({ type: "error", text: "Não foi possível remover o vínculo." });
+    else await loadCase();
   }
 
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" size={22} /> Carregando inquérito...</main>;
