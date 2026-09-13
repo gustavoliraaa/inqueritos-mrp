@@ -10,16 +10,19 @@ import {
   FileSearch,
   Home,
   LayoutDashboard,
+  LogOut,
   MapPin,
   Network,
   Plus,
   Search,
   Settings,
   Shield,
+  UserRound,
   Users,
   X
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getSupabaseBrowserClient } from "../lib/supabase";
 
 type CaseStatus = "Em investigação" | "Aguardando diligência" | "Em análise" | "Concluído";
 
@@ -82,13 +85,49 @@ function StatusBadge({ status }: { status: CaseStatus }) {
   return <span className={`status status-${status.toLowerCase().replaceAll(" ", "-")}`}>{status}</span>;
 }
 
+function getInitials(name: string) {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "US";
+}
+
 export default function HomePage() {
   const [active, setActive] = useState("Central");
   const [showModal, setShowModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [query, setQuery] = useState("");
+  const [profile, setProfile] = useState({ name: "Delegado Almeida", role: "Administrador", email: "" });
   const filtered = investigations.filter((item) =>
     `${item.id} ${item.title} ${item.unit}`.toLowerCase().includes(query.toLowerCase())
   );
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name, role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      setProfile({
+        name: profileData?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuário",
+        role: profileData?.role ? profileData.role.replaceAll("_", " ") : "Agente",
+        email: user.email || ""
+      });
+    }
+
+    void loadProfile();
+  }, []);
+
+  async function handleLogout() {
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) await supabase.auth.signOut();
+    window.location.assign("/auth/login");
+  }
 
   return (
     <main className="shell">
@@ -117,8 +156,10 @@ export default function HomePage() {
           <button className="nav-item" onClick={() => setActive("Configurações")}><Settings size={18} /><span>Configurações</span></button>
         </nav>
         <div className="sidebar-footer">
-          <div className="avatar">DA</div>
-          <div><strong>Delegado Almeida</strong><span>Administrador</span></div>
+          <button className="sidebar-profile" onClick={() => setShowUserMenu((visible) => !visible)}>
+            <div className="avatar">{getInitials(profile.name)}</div>
+            <div><strong>{profile.name}</strong><span>{profile.role}</span></div>
+          </button>
           <button aria-label="Notificações"><Bell size={17} /></button>
         </div>
       </aside>
@@ -129,7 +170,15 @@ export default function HomePage() {
           <div className="topbar-actions">
             <label className="search search-global"><Search size={17} /><input placeholder="Pesquisar na central..." value={query} onChange={(event) => setQuery(event.target.value)} /><kbd>⌘ K</kbd></label>
             <button className="icon-button" aria-label="Notificações"><Bell size={19} /><i /></button>
-            <div className="avatar">DA</div>
+            <div className="user-menu-wrap">
+              <button className="avatar avatar-button" aria-label="Abrir menu do usuário" aria-expanded={showUserMenu} onClick={() => setShowUserMenu((visible) => !visible)}>{getInitials(profile.name)}</button>
+              {showUserMenu && <div className="user-menu">
+                <div className="user-menu-header"><div className="avatar">{getInitials(profile.name)}</div><div><strong>{profile.name}</strong><span>{profile.email || "Perfil conectado"}</span></div></div>
+                <div className="user-menu-role"><UserRound size={15} /> <span>Perfil: <strong>{profile.role}</strong></span></div>
+                <button className="user-menu-item" onClick={() => setActive("Meu perfil")}><UserRound size={16} /> Meu perfil</button>
+                <button className="user-menu-item logout-item" onClick={() => void handleLogout()}><LogOut size={16} /> Sair do sistema</button>
+              </div>}
+            </div>
           </div>
         </header>
 
