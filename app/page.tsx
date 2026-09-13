@@ -102,12 +102,13 @@ export default function HomePage() {
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
+    const client = supabase;
 
     async function loadProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await client.auth.getUser();
       if (!user) return;
 
-      const { data: profileData } = await supabase
+      const { data: profileData } = await client
         .from("profiles")
         .select("full_name, role")
         .eq("id", user.id)
