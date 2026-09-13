@@ -43,7 +43,7 @@ alter table public.user_invites add column if not exists role public.user_role n
 alter table public.user_invites add column if not exists max_uses integer not null default 1;
 alter table public.user_invites add column if not exists uses_count integer not null default 0;
 update public.user_invites set max_uses = 1 where max_uses is null or max_uses < 1;
-update public.user_invites set uses_count = case when used_at is null then 0 else 1 end where uses_count is null;
+update public.user_invites set uses_count = 1 where used_at is not null and uses_count = 0;
 alter table public.user_invites drop constraint if exists user_invites_max_uses_check;
 alter table public.user_invites add constraint user_invites_max_uses_check check (max_uses between 1 and 1000);
 alter table public.user_invites drop constraint if exists user_invites_uses_count_check;
