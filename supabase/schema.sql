@@ -9,6 +9,8 @@ create sequence if not exists public.investigation_identifier_seq;
 
 create sequence if not exists public.people_identifier_seq;
 
+create sequence if not exists public.vehicle_identifier_seq;
+
 create or replace function public.next_investigation_identifier()
 returns text
 language sql
@@ -24,6 +26,14 @@ language sql
 volatile
 as $$
   select 'CID-' || lpad(nextval('public.people_identifier_seq')::text, 6, '0');
+$$;
+
+create or replace function public.next_vehicle_identifier()
+returns text
+language sql
+volatile
+as $$
+  select 'VEI-' || lpad(nextval('public.vehicle_identifier_seq')::text, 6, '0');
 $$;
 
 create table public.profiles (

@@ -40,6 +40,10 @@ Para habilitar a numeração automática de pessoas, execute
 [`supabase/people-numbering.sql`](./supabase/people-numbering.sql) uma vez no
 SQL Editor. A página `/people` permite cadastrar e editar a base central.
 
+Para habilitar identificadores automáticos de veículos, execute
+[`supabase/vehicles-numbering.sql`](./supabase/vehicles-numbering.sql) uma vez
+no SQL Editor. O módulo está disponível em `/vehicles`.
+
 ## Publicar
 
 - Suba o repositório no GitHub.
