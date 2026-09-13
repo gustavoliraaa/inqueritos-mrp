@@ -26,3 +26,21 @@ end;
 $$;
 
 create index if not exists profiles_access_enabled_idx on public.profiles(access_enabled);
+
+create table if not exists public.user_invites (
+  id uuid primary key default gen_random_uuid(),
+  token text not null unique,
+  created_by uuid not null references public.profiles(id),
+  expires_at timestamptz not null default (now() + interval '7 days'),
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.user_invites enable row level security;
+
+drop policy if exists "administrators can create user invites" on public.user_invites;
+create policy "administrators can create user invites"
+  on public.user_invites for insert to authenticated
+  with check (public.current_user_role() = 'administrador'::public.user_role and created_by = auth.uid());
+
+create index if not exists user_invites_token_idx on public.user_invites(token);

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, BookOpen, Check, KeyRound, LoaderCircle, Pencil, Plus, Search, Settings as SettingsIcon, Shield, UserRound, Users, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, LoaderCircle, Pencil, Plus, Search, Settings as SettingsIcon, Shield, UserRound, Users, X } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../../lib/supabase";
@@ -49,7 +49,7 @@ export default function UserManagementPage() {
   const [permissionsSaving, setPermissionsSaving] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteSaving, setInviteSaving] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ email: "", password: "", full_name: "", unit: "", role: "agente" });
+  const [inviteUrl, setInviteUrl] = useState("");
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -148,16 +148,13 @@ export default function UserManagementPage() {
     setFeedback("");
     const response = await fetch("/api/admin/users", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(inviteForm)
     });
-    const result = await response.json() as { error?: string };
+    const result = await response.json() as { error?: string; url?: string };
     if (!response.ok) {
       setFeedback(result.error || "Não foi possível convidar o usuário.");
     } else {
-      setShowInvite(false);
-      setInviteForm({ email: "", password: "", full_name: "", unit: "", role: "agente" });
-      setFeedback("Usuário criado e bloqueado até a liberação de um administrador. Atualize a lista para visualizá-lo.");
+      setInviteUrl(result.url || "");
+      setFeedback("URL pública criada. Envie o link ao usuário para que ele preencha o cadastro.");
     }
     setInviteSaving(false);
   }
@@ -259,7 +256,7 @@ export default function UserManagementPage() {
       </section>
 
       {editingUser && <div className="modal-backdrop" onClick={() => setEditingUser(null)}><form className="modal" onSubmit={saveUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setEditingUser(null)}><X size={18} /></button><p className="eyebrow">GESTÃO DE USUÁRIOS</p><h2>Editar usuário</h2><label>Nome completo<input required minLength={2} value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label><label>Unidade operacional<input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label><label>Cargo<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label>{feedback && <p className="form-error">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setEditingUser(null)}>Cancelar</button><button className="primary-button" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</button></div></form></div>}
-      {showInvite && <div className="modal-backdrop" onClick={() => setShowInvite(false)}><form className="modal" onSubmit={inviteUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowInvite(false)}><X size={18} /></button><p className="eyebrow">NOVO ACESSO</p><h2>Convidar usuário</h2><p className="modal-help">O usuário será criado sem acesso até um administrador liberar a conta.</p><label>Nome completo<input required minLength={2} value={inviteForm.full_name} onChange={(event) => setInviteForm({ ...inviteForm, full_name: event.target.value })} /></label><label>E-mail<input type="email" required value={inviteForm.email} onChange={(event) => setInviteForm({ ...inviteForm, email: event.target.value })} /></label><label>Senha inicial<input type="password" required minLength={6} autoComplete="new-password" value={inviteForm.password} onChange={(event) => setInviteForm({ ...inviteForm, password: event.target.value })} /></label><label>Unidade<input value={inviteForm.unit} onChange={(event) => setInviteForm({ ...inviteForm, unit: event.target.value })} /></label><label>Cargo<select value={inviteForm.role} onChange={(event) => setInviteForm({ ...inviteForm, role: event.target.value })}><option value="agente">Agente</option><option value="investigador">Investigador</option><option value="delegado">Delegado</option><option value="corregedoria">Corregedoria</option><option value="administrador">Administrador</option></select></label>{feedback && <p className="form-error">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowInvite(false)}>Cancelar</button><button className="primary-button" disabled={inviteSaving}>{inviteSaving ? "Criando..." : "Criar usuário"}</button></div></form></div>}
+      {showInvite && <div className="modal-backdrop" onClick={() => setShowInvite(false)}><form className="modal" onSubmit={inviteUser} onClick={(event) => event.stopPropagation()}><button type="button" className="modal-close" onClick={() => setShowInvite(false)}><X size={18} /></button><p className="eyebrow">URL PÚBLICA</p><h2>Gerar convite</h2><p className="modal-help">Gere um link único para enviar ao usuário. Ele preencherá nome, e-mail, senha, unidade e cargo.</p>{inviteUrl && <label>URL para enviar<input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /></label>}{feedback && <p className="form-success">{feedback}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setShowInvite(false)}>Fechar</button><button className="primary-button" disabled={inviteSaving}>{inviteSaving ? "Gerando..." : "Gerar URL pública"}</button></div></form></div>}
     </main>
   );
 }
