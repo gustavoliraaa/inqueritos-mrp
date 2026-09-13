@@ -26,14 +26,22 @@ type TimelineEvent = {
   created_at: string;
 };
 
+type Person = { id: string; identifier: string; name: string };
+type LinkedPerson = Person & { role: string; notes: string | null };
+
 const statusLabels: Record<string, string> = { aberto: "Aberto", em_investigacao: "Em investigação", aguardando_diligencia: "Aguardando diligência", em_analise: "Em análise", concluido: "Concluído", arquivado: "Arquivado" };
 const priorityLabels: Record<string, string> = { baixa: "Baixa", media: "Média", alta: "Alta" };
+const personRoleLabels: Record<string, string> = { investigado: "Investigado", vitima: "Vítima", testemunha: "Testemunha", citado: "Citado", outro: "Outro" };
 
 export default function InvestigationDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [item, setItem] = useState<Investigation | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [linkedPeople, setLinkedPeople] = useState<LinkedPerson[]>([]);
+  const [personForm, setPersonForm] = useState({ personId: "", role: "investigado", notes: "" });
+  const [linkingPerson, setLinkingPerson] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", unit: "", status: "aberto", priority: "media", access_level: "normal" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,6 +64,13 @@ export default function InvestigationDetailPage() {
     setForm({ title: data.title, description: data.description || "", unit: data.unit, status: data.status, priority: data.priority, access_level: data.access_level });
     const { data: events } = await supabase.from("timeline_events").select("id, event_type, title, description, created_at").eq("investigation_id", params.id).order("created_at", { ascending: false });
     setTimeline(events || []);
+    const { data: availablePeople } = await supabase.from("people").select("id, identifier, name").eq("status", "active").order("name");
+    setPeople(availablePeople || []);
+    const { data: links } = await supabase.from("investigation_people").select("person_id, role, notes, people(id, identifier, name)").eq("investigation_id", params.id);
+    setLinkedPeople((links || []).flatMap((link) => {
+      const person = Array.isArray(link.people) ? link.people[0] : link.people;
+      return person ? [{ ...person, role: link.role, notes: link.notes }] : [];
+    }));
     setLoading(false);
   }
 
@@ -70,6 +85,47 @@ export default function InvestigationDetailPage() {
       setFeedback({ type: "error", text: "Não foi possível salvar o inquérito." });
       setSaving(false);
       return;
+    }
+
+    async function linkPerson(event: FormEvent<HTMLFormElement>) {
+      event.preventDefault();
+      if (!personForm.personId) return;
+      setLinkingPerson(true);
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase || !item) {
+        setFeedback({ type: "error", text: "Não foi possível vincular a pessoa." });
+        setLinkingPerson(false);
+        return;
+      }
+      const client = supabase;
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) {
+        router.replace("/auth/login");
+        return;
+      }
+      const { error } = await client.from("investigation_people").insert({
+        investigation_id: item.id,
+        person_id: personForm.personId,
+        role: personForm.role,
+        notes: personForm.notes.trim() || null,
+        created_by: user.id
+      });
+      if (error) {
+        setFeedback({ type: "error", text: error.code === "23505" ? "Essa pessoa já possui esse papel neste inquérito." : "Não foi possível criar o vínculo." });
+      } else {
+        setPersonForm({ personId: "", role: "investigado", notes: "" });
+        await loadCase();
+        setFeedback({ type: "success", text: "Pessoa vinculada ao inquérito." });
+      }
+      setLinkingPerson(false);
+    }
+
+    async function unlinkPerson(personId: string, role: string) {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase || !item) return;
+      const { error } = await supabase.from("investigation_people").delete().eq("investigation_id", item.id).eq("person_id", personId).eq("role", role);
+      if (error) setFeedback({ type: "error", text: "Não foi possível remover o vínculo." });
+      else await loadCase();
     }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -116,6 +172,7 @@ export default function InvestigationDetailPage() {
           <div className="detail-grid"><form className="panel detail-form" onSubmit={saveCase}><div className="panel-heading"><div><h2>Dados do inquérito</h2><p>Atualize o andamento e as informações principais.</p></div></div><div className="detail-fields"><label>Título ou objeto<input required minLength={3} value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label><label>Unidade responsável<input required value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label><label>Descrição<textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label><div className="form-row"><label>Status<select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>{Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label><label>Prioridade<select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value })}>{Object.entries(priorityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label></div><label>Classificação de acesso<select value={form.access_level} onChange={(event) => setForm({ ...form, access_level: event.target.value })}><option value="normal">Normal</option><option value="restrito">Restrito</option><option value="sigiloso">Sigiloso</option><option value="alto_sigilo">Alto sigilo</option></select></label></div>{feedback && <p className={`profile-feedback ${feedback.type}`}>{feedback.type === "success" && <Check size={15} />}{feedback.text}</p>}<div className="profile-actions"><button className="primary-button" disabled={saving}>{saving ? <><LoaderCircle className="spin" size={16} /> Salvando...</> : <><Save size={16} /> Salvar alterações</>}</button></div></form>
             <section className="panel timeline-panel"><div className="panel-heading"><div><h2>Linha do tempo</h2><p>Histórico cronológico do inquérito.</p></div></div><div className="detail-timeline">{timeline.length === 0 ? <div className="empty-state"><span>Nenhum evento registrado.</span></div> : timeline.map((event) => <div className="timeline-event" key={event.id}><span className="activity-dot purple-dot" /><div><strong>{event.title}</strong><p>{event.description}</p><small>{new Date(event.created_at).toLocaleString("pt-BR")}</small></div></div>)}</div></section>
           </div>
+          <section className="panel linked-people-panel"><div className="panel-heading"><div><h2>Pessoas vinculadas</h2><p>Defina o papel de cada pessoa neste inquérito.</p></div></div><form className="link-person-form" onSubmit={linkPerson}><select required value={personForm.personId} onChange={(event) => setPersonForm({ ...personForm, personId: event.target.value })}><option value="">Selecionar pessoa...</option>{people.filter((person) => !linkedPeople.some((link) => link.id === person.id && link.role === personForm.role)).map((person) => <option value={person.id} key={person.id}>{person.identifier} · {person.name}</option>)}</select><select value={personForm.role} onChange={(event) => setPersonForm({ ...personForm, role: event.target.value })}>{Object.entries(personRoleLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><input placeholder="Contexto ou observação (opcional)" value={personForm.notes} onChange={(event) => setPersonForm({ ...personForm, notes: event.target.value })} /><button className="primary-button" disabled={linkingPerson}>{linkingPerson ? "Vinculando..." : "Vincular pessoa"}</button></form><div className="linked-people-list">{linkedPeople.length === 0 ? <div className="empty-state"><span>Nenhuma pessoa vinculada.</span></div> : linkedPeople.map((person) => <div className="linked-person" key={`${person.id}-${person.role}`}><div className="avatar avatar-small">{person.name.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</div><div><strong>{person.name}</strong><span>{person.identifier} · {personRoleLabels[person.role] || person.role}</span>{person.notes && <small>{person.notes}</small>}</div><button type="button" className="remove-link" onClick={() => void unlinkPerson(person.id, person.role)}>Remover</button></div>)}</div></section>
         </div>
       </section>
     </main>
