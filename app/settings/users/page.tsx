@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, Check, LoaderCircle, Pencil, Plus, Search, Setting
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../../lib/supabase";
+import AppSidebar from "../../../components/app-sidebar";
 
 type ManagedUser = {
   id: string;
@@ -232,14 +233,7 @@ export default function UserManagementPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar">
-        <div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
-        <div className="profile-sidebar-card"><div className="avatar">{initials(profile.full_name)}</div><div><strong>{profile.full_name}</strong><span>Administrador</span></div></div>
-        <p className="nav-label">SISTEMA</p>
-        <button className="nav-item" onClick={() => router.push("/audit")}><BookOpen size={18} /><span>Auditoria</span></button>
-        <button className="nav-item active"><SettingsIcon size={18} /><span>Configurações</span></button>
-        <button className="nav-item" onClick={() => router.push("/settings")}><ArrowLeft size={18} /><span>Voltar para configurações</span></button>
-      </aside>
+      <AppSidebar active="Configurações" />
 
       <section className="content">
         <header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><button className="breadcrumb-link" onClick={() => router.push("/settings")}>Configurações</button><span>/</span><strong>Gestão de usuários</strong></div></header>

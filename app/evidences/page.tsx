@@ -4,6 +4,7 @@ import { Archive, ArrowLeft, FileUp, LoaderCircle, Plus, Search, Shield, X } fro
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type Investigation = { id: string; identifier: string; title: string };
 type Evidence = {
@@ -188,7 +189,7 @@ export default function EvidencesPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar"><div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div><p className="nav-label">INVESTIGAÇÃO</p><button className="nav-item active"><Archive size={18} /><span>Evidências</span></button><button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button></aside>
+      <AppSidebar active="Evidências" />
       <section className="content"><header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><strong>Evidências</strong></div></header>
         <div className="page people-page"><div className="page-heading"><div><p className="eyebrow">GESTÃO PROBATÓRIA</p><h1>Evidências</h1><p className="muted">Registre materiais, documentos e objetos relacionados aos inquéritos.</p></div><button className="primary-button" onClick={openCreate}><Plus size={18} /> Nova evidência</button></div>
           <section className="panel"><div className="investigations-toolbar"><label className="search"><Search size={17} /><input placeholder="Buscar por identificador, título, tipo ou inquérito..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filtered.length} registro(s)</span></div>{error && !showForm && <p className="page-error">{error}</p>}{loading ? <div className="empty-state"><LoaderCircle className="spin" size={22} /> Carregando evidências...</div> : filtered.length === 0 ? <div className="empty-state"><Archive size={28} /><strong>Nenhuma evidência encontrada</strong><span>Cadastre a primeira evidência para iniciar o controle probatório.</span></div> : <div className="table-wrap"><table><thead><tr><th>IDENTIFICADOR</th><th>TÍTULO</th><th>TIPO</th><th>INQUÉRITO</th><th>STATUS</th><th>ANEXO</th><th>COLETA</th></tr></thead><tbody>{filtered.map((evidence) => { const investigation = evidence.investigations?.[0]; return <tr className="clickable-row" key={evidence.id} onClick={() => openEdit(evidence)}><td><strong>{evidence.identifier}</strong></td><td><strong>{evidence.title}</strong><small>{evidence.description || "Sem descrição"}</small></td><td>{evidence.evidence_type}</td><td>{investigation ? `${investigation.identifier} · ${investigation.title}` : "Não vinculado"}</td><td><span className="status status-em-analise">{statusLabels[evidence.status] || evidence.status}</span></td><td>{evidence.storage_path ? <button className="text-button" onClick={(event) => { event.stopPropagation(); void openAttachment(evidence); }}>Abrir</button> : "Nenhum"}</td><td>{evidence.collected_at ? new Date(`${evidence.collected_at}T00:00:00`).toLocaleDateString("pt-BR") : "Não informada"}</td></tr>; })}</tbody></table></div>}</section>

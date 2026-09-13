@@ -13,6 +13,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type IntelligenceItem = {
   id: string;
@@ -143,12 +144,7 @@ export default function IntelligencePage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar">
-        <div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
-        <p className="nav-label">INTELIGÊNCIA</p>
-        <button className="nav-item active"><BrainCircuit size={18} /><span>Central de inteligência</span></button>
-        <button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button>
-      </aside>
+      <AppSidebar active="Inteligência" />
 
       <section className="content">
         <header className="topbar">

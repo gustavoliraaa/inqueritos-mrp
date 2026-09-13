@@ -4,6 +4,7 @@ import { ArrowLeft, Building2, LoaderCircle, Plus, Search, Shield, X } from "luc
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type Organization = {
   id: string;
@@ -101,7 +102,7 @@ export default function OrganizationsPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar"><div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div><p className="nav-label">INTELIGÊNCIA</p><button className="nav-item active"><Building2 size={18} /><span>Organizações</span></button><button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button></aside>
+      <AppSidebar active="Organizações" />
       <section className="content"><header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><strong>Organizações</strong></div></header>
         <div className="page people-page"><div className="page-heading"><div><p className="eyebrow">CADASTRO COMPLEMENTAR</p><h1>Organizações</h1><p className="muted">Registre facções, grupos e organizações relacionadas ao universo do RP.</p></div><button className="primary-button" onClick={openCreate}><Plus size={18} /> Nova organização</button></div>
           <section className="panel"><div className="investigations-toolbar"><label className="search"><Search size={17} /><input placeholder="Buscar por nome, tipo, membro ou local..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filtered.length} registro(s)</span></div>{error && !showForm && <p className="page-error">{error}</p>}{loading ? <div className="empty-state"><LoaderCircle className="spin" size={22} /> Carregando organizações...</div> : filtered.length === 0 ? <div className="empty-state"><Building2 size={28} /><strong>Nenhuma organização encontrada</strong><span>Cadastre a primeira organização para ampliar a inteligência.</span></div> : <div className="table-wrap"><table><thead><tr><th>IDENTIFICADOR</th><th>NOME</th><th>TIPO</th><th>MEMBROS CONHECIDOS</th><th>LOCAIS ASSOCIADOS</th><th>ATUALIZADO</th></tr></thead><tbody>{filtered.map((organization) => <tr className="clickable-row" key={organization.id} onClick={() => openEdit(organization)}><td><strong>{organization.identifier}</strong></td><td><strong>{organization.name}</strong></td><td>{organization.data?.type || "Não informado"}</td><td>{organization.data?.members || "Nenhum informado"}</td><td>{organization.data?.locations || "Nenhum informado"}</td><td className="muted">{new Date(organization.updated_at).toLocaleDateString("pt-BR")}</td></tr>)}</tbody></table></div>}</section>

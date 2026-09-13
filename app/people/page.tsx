@@ -4,6 +4,7 @@ import { ArrowLeft, LoaderCircle, Plus, Search, Shield, UserRound, X } from "luc
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type Person = {
   id: string;
@@ -124,7 +125,7 @@ export default function PeoplePage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar"><div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div><p className="nav-label">INTELIGÊNCIA</p><button className="nav-item active"><UserRound size={18} /><span>Pessoas</span></button><button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button></aside>
+      <AppSidebar active="Pessoas" />
       <section className="content"><header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><strong>Pessoas</strong></div></header>
         <div className="page people-page"><div className="page-heading"><div><p className="eyebrow">CADASTRO CENTRAL</p><h1>Pessoas</h1><p className="muted">Cadastre personagens uma única vez e reutilize-os em investigações.</p></div><button className="primary-button" onClick={openCreate}><Plus size={18} /> Nova pessoa</button></div>
           <section className="panel"><div className="investigations-toolbar"><label className="search"><Search size={17} /><input placeholder="Buscar por nome, identificador ou documento..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filtered.length} registro(s)</span></div>{error && !showForm && <p className="page-error">{error}</p>}{loading ? <div className="empty-state"><LoaderCircle className="spin" size={22} /> Carregando pessoas...</div> : filtered.length === 0 ? <div className="empty-state"><UserRound size={28} /><strong>Nenhuma pessoa encontrada</strong><span>Cadastre a primeira pessoa para formar a base de inteligência.</span></div> : <div className="table-wrap"><table><thead><tr><th>IDENTIFICADOR</th><th>NOME</th><th>DOCUMENTO</th><th>APELIDOS</th><th>ATUALIZADO</th></tr></thead><tbody>{filtered.map((person) => <tr className="clickable-row" key={person.id} onClick={() => openPerson(person)}><td><strong>{person.identifier}</strong></td><td><strong>{person.name}</strong><small>{person.status === "active" ? "Cadastro ativo" : "Cadastro inativo"}</small></td><td>{person.document_id || "Não informado"}</td><td>{person.aliases.length ? person.aliases.join(", ") : "Nenhum"}</td><td className="muted">{new Date(person.updated_at).toLocaleDateString("pt-BR")}</td></tr>)}</tbody></table></div>}</section>

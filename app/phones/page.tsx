@@ -4,6 +4,7 @@ import { ArrowLeft, LoaderCircle, Phone, Plus, Search, Shield, X } from "lucide-
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type PhoneRecord = {
   id: string;
@@ -136,12 +137,7 @@ export default function PhonesPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar">
-        <div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
-        <p className="nav-label">INTELIGÊNCIA</p>
-        <button className="nav-item active"><Phone size={18} /><span>Telefones</span></button>
-        <button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button>
-      </aside>
+      <AppSidebar active="Telefones" />
       <section className="content">
         <header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><strong>Telefones</strong></div></header>
         <div className="page people-page">

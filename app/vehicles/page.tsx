@@ -4,6 +4,7 @@ import { ArrowLeft, Car, LoaderCircle, Plus, Search, Shield, X } from "lucide-re
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type Vehicle = {
   id: string;
@@ -125,7 +126,7 @@ export default function VehiclesPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar"><div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div><p className="nav-label">INTELIGÊNCIA</p><button className="nav-item active"><Car size={18} /><span>Veículos</span></button><button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button></aside>
+      <AppSidebar active="Veículos" />
       <section className="content"><header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><strong>Veículos</strong></div></header>
         <div className="page people-page"><div className="page-heading"><div><p className="eyebrow">CADASTRO COMPLEMENTAR</p><h1>Veículos</h1><p className="muted">Cadastre veículos reutilizáveis nas investigações.</p></div><button className="primary-button" onClick={openCreate}><Plus size={18} /> Novo veículo</button></div>
           <section className="panel"><div className="investigations-toolbar"><label className="search"><Search size={17} /><input placeholder="Buscar por placa, modelo, cor ou proprietário..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filtered.length} registro(s)</span></div>{error && !showForm && <p className="page-error">{error}</p>}{loading ? <div className="empty-state"><LoaderCircle className="spin" size={22} /> Carregando veículos...</div> : filtered.length === 0 ? <div className="empty-state"><Car size={28} /><strong>Nenhum veículo encontrado</strong><span>Cadastre o primeiro veículo para ampliar a base investigativa.</span></div> : <div className="table-wrap"><table><thead><tr><th>PLACA / ID</th><th>MODELO</th><th>COR</th><th>PROPRIETÁRIO CONHECIDO</th><th>ATUALIZADO</th></tr></thead><tbody>{filtered.map((vehicle) => <tr className="clickable-row" key={vehicle.id} onClick={() => openEdit(vehicle)}><td><strong>{vehicle.identifier}</strong></td><td><strong>{vehicle.data?.model || vehicle.name}</strong></td><td>{vehicle.data?.color || "Não informada"}</td><td>{vehicle.data?.owner || "Desconhecido"}</td><td className="muted">{new Date(vehicle.updated_at).toLocaleDateString("pt-BR")}</td></tr>)}</tbody></table></div>}</section>

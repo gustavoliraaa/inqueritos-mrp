@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, LoaderCircle, Search, Shield, UserRound } from "lu
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type AuditActor = { full_name: string | null; role: string | null };
 type AuditLog = {
@@ -81,12 +82,7 @@ export default function AuditPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar">
-        <div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
-        <p className="nav-label">SISTEMA</p>
-        <button className="nav-item active"><BookOpen size={18} /><span>Auditoria</span></button>
-        <button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button>
-      </aside>
+      <AppSidebar active="Auditoria" />
 
       <section className="content">
         <header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><strong>Auditoria</strong></div></header>

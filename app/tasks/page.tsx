@@ -4,6 +4,7 @@ import { ArrowLeft, ClipboardCheck, LoaderCircle, Plus, Search, Shield, X } from
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
+import AppSidebar from "../../components/app-sidebar";
 
 type Investigation = { id: string; identifier: string; title: string };
 type Profile = { id: string; full_name: string };
@@ -171,12 +172,7 @@ export default function TasksPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar">
-        <div className="brand"><div className="brand-mark"><Shield size={21} /></div><div><strong>MRP</strong><span>INTELLIGENCE</span></div></div>
-        <p className="nav-label">INVESTIGAÇÃO</p>
-        <button className="nav-item active"><ClipboardCheck size={18} /><span>Diligências</span></button>
-        <button className="nav-item" onClick={() => router.push("/")}><ArrowLeft size={18} /><span>Voltar para central</span></button>
-      </aside>
+      <AppSidebar active="Diligências" />
 
       <section className="content">
         <header className="topbar"><div className="breadcrumbs"><button className="breadcrumb-link" onClick={() => router.push("/")}>Central</button><span>/</span><strong>Diligências</strong></div></header>

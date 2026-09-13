@@ -4,6 +4,7 @@ import { ArrowLeft, LoaderCircle, Shield, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../../lib/supabase";
+import AppSidebar from "../../../components/app-sidebar";
 
 type Person = {
   id: string;
@@ -70,15 +71,7 @@ export default function PersonDetailPage() {
 
   return (
     <main className="shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark"><Shield size={21} /></div>
-          <div><strong>MRP</strong><span>INTELLIGENCE</span></div>
-        </div>
-        <p className="nav-label">INTELIGÊNCIA</p>
-        <button className="nav-item active"><UserRound size={18} /><span>Pessoa</span></button>
-        <button className="nav-item" onClick={() => router.push("/people")}><ArrowLeft size={18} /><span>Todas as pessoas</span></button>
-      </aside>
+      <AppSidebar active="Pessoas" />
       <section className="content">
         <header className="topbar">
           <div className="breadcrumbs">
