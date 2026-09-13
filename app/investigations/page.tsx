@@ -84,7 +84,7 @@ export default function InvestigationsPage() {
       return;
     }
 
-    const { error: insertError } = await supabase.from("investigations").insert({
+    const { data: investigation, error: insertError } = await supabase.from("investigations").insert({
       identifier,
       title: form.title.trim(),
       description: form.description.trim() || null,
@@ -93,11 +93,21 @@ export default function InvestigationsPage() {
       access_level: form.access_level,
       created_by: user.id,
       responsible_delegate: user.id
-    });
+    }).select("id, identifier").single();
 
     if (insertError) {
       setError("Não foi possível criar o inquérito. Confira se seu perfil possui uma unidade.");
     } else {
+      const { error: timelineError } = await supabase.from("timeline_events").insert({
+        investigation_id: investigation.id,
+        event_type: "created",
+        title: `Inquérito ${investigation.identifier} aberto`,
+        description: "Registro inicial criado no sistema.",
+        actor_id: user.id
+      });
+      if (timelineError) {
+        setError("O inquérito foi criado, mas a linha do tempo inicial não pôde ser registrada.");
+      }
       setForm({ title: "", description: "", unit: "", priority: "media", access_level: "normal" });
       setShowCreate(false);
       setLoading(true);
@@ -123,7 +133,7 @@ export default function InvestigationsPage() {
           <section className="panel">
             <div className="investigations-toolbar"><label className="search"><Search size={17} /><input placeholder="Buscar por número, título ou unidade..." value={query} onChange={(event) => setQuery(event.target.value)} /></label><span>{filtered.length} registro(s)</span></div>
             {error && <p className="page-error">{error}</p>}
-            {loading ? <div className="empty-state"><LoaderCircle className="spin" size={22} /> Carregando inquéritos...</div> : filtered.length === 0 ? <div className="empty-state"><ClipboardList size={28} /><strong>Nenhum inquérito encontrado</strong><span>Abra o primeiro inquérito para começar a registrar a investigação.</span></div> : <div className="table-wrap"><table><thead><tr><th>IDENTIFICADOR</th><th>OBJETO</th><th>UNIDADE</th><th>STATUS</th><th>PRIORIDADE</th><th>ATUALIZADO</th></tr></thead><tbody>{filtered.map((item) => <tr key={item.id}><td><strong>{item.identifier}</strong></td><td><strong>{item.title}</strong><small>{item.description || "Sem descrição inicial"}</small></td><td>{item.unit}</td><td><span className={`status status-${item.status}`}>{statusLabels[item.status] || item.status}</span></td><td><span className={`priority priority-${item.priority}`}><i />{priorityLabels[item.priority] || item.priority}</span></td><td className="muted">{new Date(item.updated_at).toLocaleDateString("pt-BR")}</td></tr>)}</tbody></table></div>}
+            {loading ? <div className="empty-state"><LoaderCircle className="spin" size={22} /> Carregando inquéritos...</div> : filtered.length === 0 ? <div className="empty-state"><ClipboardList size={28} /><strong>Nenhum inquérito encontrado</strong><span>Abra o primeiro inquérito para começar a registrar a investigação.</span></div> : <div className="table-wrap"><table><thead><tr><th>IDENTIFICADOR</th><th>OBJETO</th><th>UNIDADE</th><th>STATUS</th><th>PRIORIDADE</th><th>ATUALIZADO</th></tr></thead><tbody>{filtered.map((item) => <tr className="clickable-row" key={item.id} onClick={() => router.push(`/investigations/${item.id}`)}><td><strong>{item.identifier}</strong></td><td><strong>{item.title}</strong><small>{item.description || "Sem descrição inicial"}</small></td><td>{item.unit}</td><td><span className={`status status-${item.status}`}>{statusLabels[item.status] || item.status}</span></td><td><span className={`priority priority-${item.priority}`}><i />{priorityLabels[item.priority] || item.priority}</span></td><td className="muted">{new Date(item.updated_at).toLocaleDateString("pt-BR")}</td></tr>)}</tbody></table></div>}
           </section>
         </div>
       </section>
