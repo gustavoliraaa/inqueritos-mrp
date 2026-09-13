@@ -102,6 +102,8 @@ Para habilitar links públicos de inquéritos, execute
 [`supabase/investigation-sharing.sql`](./supabase/investigation-sharing.sql) no
 SQL Editor do Supabase. Na página do inquérito, use **Compartilhar link**; o
 link pode ser aberto sem login e gerar um novo link revoga o anterior.
+Se o banco já existia, execute o arquivo novamente para atualizar a função
+`create_investigation_share`.
 O botão **Exportar PDF** abre a impressão otimizada do inquérito. No diálogo do
 navegador, selecione **Salvar como PDF**.
 

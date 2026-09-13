@@ -31,11 +31,8 @@ begin
   where investigation_id = target_investigation_id
     and revoked_at is null;
 
-  new_token := translate(
-    replace(replace(encode(gen_random_bytes(24), 'base64'), '+', '-'), '/', '_'),
-    '=',
-    ''
-  );
+  new_token := replace(gen_random_uuid()::text, '-', '') ||
+    replace(gen_random_uuid()::text, '-', '');
   insert into public.investigation_shares (investigation_id, token, created_by)
   values (target_investigation_id, new_token, auth.uid());
 
